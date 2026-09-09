@@ -4,10 +4,10 @@
 
 project_name: panchayat-complaint-tracker
 created: 2026-09-08
-current_phase: requirements
-gates_passed:
-internal_approvals:
-rework_count: 0
+current_phase: tech-stack
+gates_passed: GATE_1
+internal_approvals: requirements: rev 4, product-reviewer, requirements-qa-reviewer
+rework_count: 3
 
 ## Idea (verbatim from human)
 I want to build a small tool where a panchayat clerk logs citizen complaints and citizens check status by complaint number
@@ -23,8 +23,8 @@ I want to build a small tool where a panchayat clerk logs citizen complaints and
 ## Phase status
 | Phase           | Status      | Artifact root            | Notes |
 |-----------------|-------------|--------------------------|-------|
-| requirements    | in_progress | .ai/requirements/        |       |
-| tech-stack      | pending     | .ai/technology/          |       |
+| requirements    | approved    | .ai/requirements/        | GATE_1 2026-09-09, rev 4 |
+| tech-stack      | in_progress | .ai/technology/          |       |
 | ux              | pending     | .ai/ux/, .ai/design/     |       |
 | architecture    | pending     | .ai/architecture/        |       |
 | plan            | pending     | .ai/development/         |       |
@@ -34,6 +34,13 @@ I want to build a small tool where a panchayat clerk logs citizen complaints and
 
 ## Review log
 <!-- one line per verdict: date | phase | rev | reviewer | verdict | crit/high/med/low -->
+2026-09-09 | requirements | rev 1 | product-reviewer | CHANGES_REQUIRED | 0/1/2/3
+2026-09-09 | requirements | rev 1 | requirements-qa-reviewer | CHANGES_REQUIRED | 0/2/4/3
+2026-09-09 | requirements | rev 2 | product-reviewer | CHANGES_REQUIRED | 0/1/0/2
+2026-09-09 | requirements | rev 2 | requirements-qa-reviewer | CHANGES_REQUIRED | 0/1/3/3
+2026-09-09 | requirements | rev 3 | product-reviewer | APPROVED | 0/0/2/1
+2026-09-09 | requirements | rev 3 | requirements-qa-reviewer | CHANGES_REQUIRED | 0/1/2/1
+2026-09-09 | requirements | rev 4 | requirements-qa-reviewer | APPROVED | 0/0/2/3
 
 ## Known risks (summary — details in risks.md)
 
