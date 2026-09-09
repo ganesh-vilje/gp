@@ -289,3 +289,45 @@ Risks & mitigations: NFR-008/NFR-009 coverage becomes full once the enumerated
 field exists in /architecture.
 Human notes: Q7 — "option (b), fixed status messages." Q8 — "confirmed, public
 page may require JavaScript."
+
+## ADR-014 — UX/UI direction approved (GATE_4)
+Date: 2026-09-09 | Gate: GATE_4 | Status: accepted
+Decision: Approve .ai/ux/ and .ai/design/ rev 3 as the UX/UI baseline: 6 screens
+(Public Status Lookup; Login; Change Password; Complaints; Accounts; 404), 6
+flows covering US-001..US-017; a "village-office register" visual direction —
+system fonts, single deep-green primary #146C43 (6.46:1), warm light neutrals,
+five labelled status colours ≥4.5:1, low-to-medium density, hand-written CSS
+custom properties, no framework/icon pack/dark mode/shadows/animation; WCAG 2.2
+AA commitments (keyboard, focus management, live-region announcements,
+--color-border-interactive #767676 at 4.54:1, ≥44 px public / ≥24 px clerk
+targets, 320 px reflow, <html lang="en">). Internal approvals: ux-reviewer
+(rev 2), product-reviewer (rev 2), accessibility-reviewer (rev 3), after two
+rework loops.
+Key UX decisions: (1) status-update control offers only legal next statuses
+(BR-002); (2) public page shows five fixed status messages, never the clerk
+note (Q7/ADR-013); (3) one-time-password screen gated by an explicit
+acknowledgment checkbox plus beforeunload/route guard (BR-016); (4) concurrent
+edits shown as a non-blocking advisory (BR-011); (5) client-side instant
+rejection of malformed complaint numbers with the API as sole authority
+(FR-020/NFR-001); (6) Complaints list has find-by-number, name/phone search,
+status filter and 25-row "Load more" pagination (NFR-010).
+Alternatives considered: SaaS dashboard template (sidebar, cards, icon library,
+dark mode) — rejected on byte budget and users; free-choice status dropdown
+with server rejection; sanitized clerk note on the public page; dismissible OTP
+warning; blocking 409 on concurrent edit; Unicode status glyphs (considered,
+rejected — visual-direction.md UX-F6).
+Requirements side-effects: BR-016 and AC-017 amended to a 12-character password
+minimum (rev 6) to match ADR-007; the human accepted two UX additions as MVP
+scope — name/phone search on the clerk list (OQ-10) and voluntary self-service
+password change (OQ-9) — requirements-analyst adds matching FRs at the next
+requirements revision. Q-007 resolved: 7-day correction window.
+Risks & mitigations: 120 KB public-route budget still measured only at /build
+(fallback 2 KB page per ADR-004); shared live region for search + pagination
+announcements may collide (advisory, accessibility F1 rev 3); nested-dialog
+aria-modal/inert handling to be clarified at code review (F2 rev 3).
+Human notes (verbatim, 2026-09-09): "yes. Q1: English now; Telugu will be added
+later, so keep every string in one module. Q2: use the defaults for the test
+project. Q3: accept name/phone search on the clerk list. Q4: accept voluntary
+password change. Q5: confirm 7 days." Consequence of Q1: a single strings
+module is a build requirement for /architecture and /plan (i18n-ready, English
+only at launch).

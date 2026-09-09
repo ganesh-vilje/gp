@@ -47,6 +47,11 @@
     is now a confirmed human decision (GATE_2 Q4: "keep 20/min."), not an
     analyst default — see product-requirements.md NFR-005 and
     open-questions.md § Resolved (Q-013).
+- rev 6 (2026-09-09) — reconciliation with ADR-007 (GATE_2) — password
+  minimum 12 (C5); surfaced by product-reviewer in /ux rev 1:
+  - BR-016: password minimum length changed from 8 to 12 characters to match
+    the human-approved GATE_2 technology decision ADR-007 (C5). No other part
+    of BR-016 changed. Verified by updated AC-017 (acceptance-criteria.md).
 
 ## BR-001 — Complaint number uniqueness and immutability
 Every complaint is assigned exactly one complaint number by the system at
@@ -180,12 +185,14 @@ A new clerk's username must be unique across all clerk accounts and match
 a simple format (letters, digits, and underscores only, 3–30 characters);
 an admin clerk sees a validation error and no account is created if the
 username fails either check. A password (whether set at account creation
-or set by a password reset) must be at least 8 characters; a shorter
-password is rejected with a validation error and no account is
-created/password is not changed. A new or reset password is shown once,
+or set by a password reset) must be at least 12 characters (per ADR-007,
+GATE_2, C5); a shorter password is rejected with a validation error and no
+account is created/password is not changed. A new or reset password is shown once,
 on-screen, to the admin clerk performing the action (not emailed or
 texted, since no such channel exists in the MVP); the admin clerk is
 expected to hand it to the affected clerk in person or by phone, and the
 affected clerk must change that password at their first subsequent login.
 (Added rev 4, Q3-F2. Exact username/password character-class regex is left
-to the architect; the numeric minimums above are the analyst's default.)
+to the architect; the username length is the analyst's default. Password
+minimum length is 12, per ADR-007/GATE_2/C5, not an analyst default;
+amended rev 6.)

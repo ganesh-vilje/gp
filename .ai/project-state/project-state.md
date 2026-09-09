@@ -4,9 +4,9 @@
 
 project_name: panchayat-complaint-tracker
 created: 2026-09-08
-current_phase: ux
-gates_passed: GATE_1 GATE_2
-internal_approvals: requirements: rev 4, product-reviewer, requirements-qa-reviewer; tech-stack: rev 5 (FastAPI + Next.js per H3/H4), architecture-reviewer, security-reviewer, cost-reviewer
+current_phase: architecture
+gates_passed: GATE_1 GATE_2 GATE_4
+internal_approvals: requirements: rev 4, product-reviewer, requirements-qa-reviewer; tech-stack: rev 5 (FastAPI + Next.js per H3/H4), architecture-reviewer, security-reviewer, cost-reviewer; ux: rev 3, ux-reviewer, accessibility-reviewer, product-reviewer
 rework_count: 0
 
 ## Idea (verbatim from human)
@@ -25,8 +25,8 @@ I want to build a small tool where a panchayat clerk logs citizen complaints and
 |-----------------|-------------|--------------------------|-------|
 | requirements    | approved    | .ai/requirements/        | GATE_1 2026-09-09, rev 4 |
 | tech-stack      | approved    | .ai/technology/          | GATE_2 2026-09-09, rev 5 (FastAPI JSON API + Next.js static export, Fly.io Mumbai per Q1) |
-| ux              | in_progress | .ai/ux/, .ai/design/     |       |
-| architecture    | pending     | .ai/architecture/        |       |
+| ux              | approved    | .ai/ux/, .ai/design/     | GATE_4 2026-09-09, rev 3 |
+| architecture    | in_progress | .ai/architecture/        |       |
 | plan            | pending     | .ai/development/         |       |
 | build           | pending     | (application code)       |       |
 | qa              | pending     | .ai/testing/, .ai/qa/    |       |
@@ -58,6 +58,14 @@ I want to build a small tool where a panchayat clerk logs citizen complaints and
 2026-09-09 | tech-stack | rev 5 | architecture-reviewer | APPROVED | 0/0/3/4
 2026-09-09 | tech-stack | rev 5 | security-reviewer | APPROVED | 0/0/4/1
 2026-09-09 | tech-stack | rev 5 | HUMAN (GATE_2) | APPROVED — "yes" + answers to Q1–Q9 (see ADR-002) | phase → ux
+2026-09-09 | ux | rev 1 | product-reviewer | CHANGES_REQUIRED | 0/1/1/1
+2026-09-09 | ux | rev 1 | ux-reviewer | CHANGES_REQUIRED | 0/3/1/2
+2026-09-09 | ux | rev 1 | accessibility-reviewer | CHANGES_REQUIRED | 0/3/5/3
+2026-09-09 | ux | rev 2 | ux-reviewer | APPROVED | 0/0/0/1
+2026-09-09 | ux | rev 2 | product-reviewer | APPROVED | 0/0/1/0
+2026-09-09 | ux | rev 2 | accessibility-reviewer | CHANGES_REQUIRED | 0/2/2/4
+2026-09-09 | ux | rev 3 | accessibility-reviewer | APPROVED | 0/0/0/2
+2026-09-09 | ux | rev 3 | HUMAN (GATE_4) | APPROVED — "yes" + answers Q1–Q5 (see ADR-014) | phase → architecture
 
 ## Known risks (summary — details in risks.md)
 

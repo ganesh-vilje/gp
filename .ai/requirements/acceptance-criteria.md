@@ -66,6 +66,11 @@
     20/min."), no longer an analyst default; added a parallel-requests
     assertion so the limit must hold under concurrent load, not just
     sequential requests.
+- rev 6 (2026-09-09) — reconciliation with ADR-007 (GATE_2) — password
+  minimum 12 (C5); surfaced by product-reviewer in /ux rev 1:
+  - AC-017: password-length validation bullet changed from "shorter than 8
+    characters" to "shorter than 12 characters is rejected, and a 12-character
+    password is accepted" to match BR-016 (amended rev 6) and ADR-007 (C5).
 
 Every AC is written as Given/When/Then with a concrete, observable result.
 Each AC states which FR/US/BR it verifies. Items marked **[pending Q-xxx]**
@@ -321,9 +326,12 @@ depend on an open question and may need revision once the human answers.
   BR-016), when submitted, then the system rejects the submission with a
   visible validation message and no account is created.
 - Given an admin clerk submits a new-account or password-reset form with a
-  password shorter than 8 characters (per BR-016), when submitted, then the
-  system rejects the submission with a visible validation message and no
-  account is created/no password is changed.
+  password shorter than 12 characters (e.g., 11 characters; per BR-016), when
+  submitted, then the system rejects the submission with a visible
+  validation message and no account is created/no password is changed.
+- Given an admin clerk submits a new-account or password-reset form with a
+  password of exactly 12 characters, when submitted, then the system accepts
+  the submission and the account is created/password is changed.
 - Given an admin clerk successfully creates an account or resets a
   password, when the action completes, then the new/reset password is
   displayed once on-screen to the admin clerk (per BR-016), and the
