@@ -29,6 +29,15 @@
   from BR-013's new mitigation line (P3-F3, see business-rules.md). Per
   explicit instruction, Q-001 and Q-002 (blocking) were NOT touched in this
   pass.
+- rev 5 (2026-09-09) — post-GATE_1, tech-stack phase: added Q-016
+  (important), raised by the security-reviewer, about whether the public
+  status page's free-text "latest note" (FR-009) can leak PII a clerk
+  types into it; affects the already-resolved Q-001 masking decision.
+- rev 6 (2026-09-09) — post-GATE_2 amendment (technology stack approved):
+  Q-013 and Q-016 moved to Resolved with the human's verbatim GATE_2
+  answers. Q-013 resolved by GATE_2 Q4 ("keep 20/min."). Q-016 resolved by
+  GATE_2 Q7 ("option (b), fixed status messages."). No new questions added
+  by this pass.
 
 Only the requirements-analyst adds questions here. Only the orchestrator marks
 them resolved (with the human's answer verbatim).
@@ -64,14 +73,6 @@ them resolved (with the human's answer verbatim).
   model needs a category/SLA field now. | Analyst's default: free-text
   description only, no category or SLA field in the MVP (see Future
   scope).
-- Q-013 | Is a rate limit of 20 public-lookup requests per IP address per
-  minute an acceptable default to slow down automated guessing of complaint
-  numbers, or would you prefer a different threshold or a different
-  mechanism (e.g., CAPTCHA after N failed attempts)? | Affects NFR-005 and
-  AC-011, which currently ship with the analyst's 20/min default. |
-  Analyst's proposed default: 20 requests per IP per minute, simple
-  throttle/reject beyond that (no CAPTCHA in MVP). (Added rev 2, P-F4.)
-
 ## Nice to know
 - Q-012 | If two clerks happen to update the same complaint at nearly the
   same time, should the second clerk to save see a warning that someone
@@ -131,3 +132,13 @@ them resolved (with the human's answer verbatim).
   A11); ongoing account creation/password resets are in-app via the admin
   clerk (FR-017, FR-018). | 2026-09-09 | recorded from human decision H1
   (requirements rev 3 rework).
+- Q-013 | Human answer at GATE_2 Q4 (verbatim): "keep 20/min." Resolved: the
+  public-lookup rate limit is confirmed as 20 requests per IP address per
+  minute, simple throttle/reject beyond that (no CAPTCHA in MVP) — NFR-005
+  and AC-011 no longer carry an "analyst default" marker. | 2026-09-09 |
+  recorded from GATE_2 approval.
+- Q-016 | Human answer at GATE_2 Q7 (verbatim): "option (b), fixed status
+  messages." Resolved: the public status page shows a fixed, enumerated set
+  of public status messages (one per status, wording defined in /ux); the
+  clerk's free-text note is never shown on the public view (FR-009, BR-005).
+  | 2026-09-09 | recorded from GATE_2 approval.

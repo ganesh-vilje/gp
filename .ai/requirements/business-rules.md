@@ -29,6 +29,24 @@
     verified by new bullets in AC-017.
   - P3-F3: added a mitigation line to BR-013 recommending a second admin
     clerk account as mitigation for admin self-lockout, pending Q-015.
+- rev 4.1 (2026-09-09) — post-GATE_1 housekeeping: BR-002 and BR-005 updated
+  to record Q-002/Q-001 as resolved at GATE_1 (see
+  open-questions.md § Resolved); no rule's substance changed.
+- rev 5 (2026-09-09) — post-GATE_2 amendment (technology stack approved):
+  - BR-015: removed the "or at the very first server check" phrasing that
+    was written to permit a no-JS implementation (superseded by H4/Q8 —
+    the frontend may require JavaScript). The validation-before-lookup rule
+    itself is unchanged and is enforced by the API (FastAPI backend, per
+    H4).
+  - BR-005: reworded to state that the public page shows the enumerated
+    public status message (per Q-016, resolved GATE_2 Q7: "option (b),
+    fixed status messages"), never the clerk's free-text note.
+  - BR-010: no change to BR-010's own text (it does not itself state a
+    number); noted here for traceability because AC-011 verifies BR-010
+    alongside NFR-005, and NFR-005's 20-requests-per-IP-per-minute figure
+    is now a confirmed human decision (GATE_2 Q4: "keep 20/min."), not an
+    analyst default — see product-requirements.md NFR-005 and
+    open-questions.md § Resolved (Q-013).
 
 ## BR-001 — Complaint number uniqueness and immutability
 Every complaint is assigned exactly one complaint number by the system at
@@ -36,14 +54,13 @@ creation time. The number is unique across all complaints (past and
 present) and, once assigned, never changes and is never reused, even if the
 complaint is later marked invalid/duplicate.
 
-## BR-002 — Complaint status model (assumption, pending Q-002)
+## BR-002 — Complaint status model (resolved at GATE_1, Q-002)
 Default statuses: **New** (set automatically at creation) → **In
 Progress** → **Resolved** or **Rejected** → **Closed** (optional final
 state). A complaint cannot move directly from **New** to **Closed**,
 **Resolved**, or **Rejected**; it must pass through **In Progress** first.
-This entire model is an analyst default and is flagged blocking in
-open-questions.md (Q-002) — confirm before the architect finalizes the data
-model.
+This model was the analyst's default and was confirmed by the human at
+GATE_1 (Q-002, resolved at GATE_1) — see open-questions.md § Resolved.
 
 ## BR-003 — Who may create or change a complaint
 Only an authenticated clerk may create a complaint, change its status, add
@@ -55,14 +72,20 @@ The public status-lookup page accepts only an exact complaint number.
 Partial matches, wildcard search, or "did you mean" suggestions are not
 permitted, to avoid leaking information about other complaints.
 
-## BR-005 — Public view masks citizen PII (assumption, pending Q-001)
+## BR-005 — Public view masks citizen PII (resolved at GATE_1, Q-001; public-message rule resolved at GATE_2, Q-016)
 The citizen's name and phone number are not shown at all on the public
-view; the exact masking rule is pending Q-001 (status + number + date +
-note are sufficient for the citizen to recognize their own complaint,
-since they already hold the number). This default is flagged blocking in
-open-questions.md (Q-001). (Wording standardized rev 3, P2-F2, to match
-FR-009 and the MVP scope bullet in product-requirements.md, and AC-006 in
-acceptance-criteria.md.)
+view (status + number + date + public status message are sufficient for
+the citizen to recognize their own complaint, since they already hold the
+number). This default was confirmed by the human at GATE_1 (Q-001,
+resolved at GATE_1) — see open-questions.md § Resolved. (Wording
+standardized rev 3, P2-F2, to match FR-009 and the MVP scope bullet in
+product-requirements.md, and AC-006 in acceptance-criteria.md.)
+The public view shows a public status message drawn from a fixed,
+enumerated set (one per status, wording defined in /ux); the clerk's
+free-text note is never shown on the public view — it is visible to
+clerks only. This resolves Q-016 (human decision at GATE_2 Q7, verbatim:
+"option (b), fixed status messages") — see open-questions.md § Resolved.
+(Reworded rev 5.)
 
 ## BR-006 — Complaint description is required
 A complaint cannot be created with a blank description field. The
@@ -139,15 +162,18 @@ either limit sees a validation error and the record is not saved until the
 field is shortened. (Added rev 3, Q2-F6.)
 
 ## BR-015 — Public lookup validates input before any lookup is performed
-The public status-lookup page validates the entered complaint number before
-making any request against the complaint store. Blank input, whitespace-only
-input, and input that does not match the expected complaint-number format
-are all rejected client-side (or at the very first server check, before any
-data lookup) with the message "Enter a valid complaint number." No lookup,
-and no distinction between "not found" and "invalid," is ever performed or
-implied for this class of input — see BR-004 (exact match only) and BR-010
-(no bulk access), which this rule complements by ensuring malformed input
-never reaches the lookup mechanism at all. (Added rev 3, H2.)
+The API validates the entered complaint number before making any request
+against the complaint store. Blank input, whitespace-only input, and input
+that does not match the expected complaint-number format are all rejected
+by the API, before any data lookup, with the message "Enter a valid
+complaint number." This is an API-level (server-side) contract, independent
+of any additional client-side validation the Next.js frontend also
+performs (H4: FastAPI JSON API with a separate Next.js frontend). No
+lookup, and no distinction between "not found" and "invalid," is ever
+performed or implied for this class of input — see BR-004 (exact match
+only) and BR-010 (no bulk access), which this rule complements by ensuring
+malformed input never reaches the lookup mechanism at all. (Added rev 3,
+H2; reworded rev 5 to remove the no-JS allowance per H4/Q8.)
 
 ## BR-016 — Account creation and password rules (decision H1, resolves Q3-F2)
 A new clerk's username must be unique across all clerk accounts and match

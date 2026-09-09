@@ -49,6 +49,23 @@
     validation bullets to AC-017 — verifies new BR-016.
   - Q3-F3: added an in-flight/timeout bullet to AC-005 — verifies NFR-011
     for the list/filter workflow, matching AC-002/AC-004/AC-006.
+- rev 4.1 (2026-09-09) — post-GATE_1 housekeeping: AC-004 and AC-006
+  updated to record Q-002/Q-001 as resolved at GATE_1 (see
+  open-questions.md § Resolved); no acceptance criterion's substance
+  changed.
+- rev 5 (2026-09-09) — post-GATE_2 amendment (technology stack approved):
+  - AC-018: deleted the "with JS disabled" reasoning; strengthened the
+    query-level assertion so it explicitly requires that no statement
+    touching the complaint table executes for blank/whitespace/malformed
+    input (BR-015, now stated as an API contract per H4).
+  - AC-006: added an explicit assertion that the public response/DOM
+    contains a message from the fixed, enumerated public-status-message
+    set and never contains the clerk's free-text note, the citizen's name,
+    or the citizen's phone number (resolves Q-016 per GATE_2 Q7).
+  - AC-011: 20/min is now a confirmed human decision (GATE_2 Q4: "keep
+    20/min."), no longer an analyst default; added a parallel-requests
+    assertion so the limit must hold under concurrent load, not just
+    sequential requests.
 
 Every AC is written as Given/When/Then with a concrete, observable result.
 Each AC states which FR/US/BR it verifies. Items marked **[pending Q-xxx]**
@@ -112,8 +129,8 @@ depend on an open question and may need revision once the human answers.
   note is stored, and the change is timestamped.
 - Given a complaint currently in status "New", when a clerk attempts to set
   status directly to "Closed" (skipping Resolved/Rejected), then the system
-  rejects the transition and shows an error. **[pending Q-002 — depends on
-  confirmed status/transition model; default per BR-002]**
+  rejects the transition and shows an error. (resolved at GATE_1 — status/
+  transition model confirmed per BR-002/Q-002)
 - Given a status change is saved, when the clerk reopens the complaint
   detail view, then the new status and note are visible immediately.
 - Given a clerk submits a status-change save, when the request is in
@@ -149,10 +166,17 @@ depend on an open question and may need revision once the human answers.
   complaint number and submits, then the result shows the complaint number,
   current status, date logged, and latest status note.
 - Given the same lookup, when the result is displayed, then the citizen's
-  name and phone number are not shown at all on the public view; the exact
-  masking rule is pending Q-001 (see BR-005). **[pending Q-001]** (Wording
+  name and phone number are not shown at all on the public view (see
+  BR-005). (resolved at GATE_1 — masking rule confirmed per Q-001; wording
   standardized rev 3, P2-F2, to match FR-009, the MVP scope bullet, and
   BR-005.)
+- Given the same lookup, when the result is displayed, then the status
+  message shown is one of the fixed, enumerated public status messages
+  (one per status, per FR-009/BR-005), and the response/DOM never contains
+  the clerk's free-text note, the citizen's name, or the citizen's phone
+  number, in any field, attribute, or embedded data (e.g., no leakage via
+  a hidden field or API payload the page happens to fetch). (Resolves
+  Q-016 per GATE_2 Q7: "option (b), fixed status messages." Added rev 5.)
 - Given the citizen enters the complaint number with extra surrounding
   spaces or different letter case (if the format uses letters), when they
   submit, then the lookup still succeeds (basic normalization), unless the
@@ -211,10 +235,14 @@ depend on an open question and may need revision once the human answers.
 ## AC-011 — Protection against complaint-number guessing (verifies US-011, NFR-004, NFR-005, BR-010)
 - Given the public lookup endpoint, when 25 lookup requests are submitted
   from the same source IP address within one minute, then requests beyond
-  the 20th are throttled or rejected with a rate-limit message. **[the
-  20/min threshold is an analyst default tracked as Q-013 (important, see
-  open-questions.md) — revise this AC if the human specifies a different
-  number]**
+  the 20th are throttled or rejected with a rate-limit message. (20/min is
+  a confirmed human decision, GATE_2 Q4: "keep 20/min." — resolves Q-013;
+  see open-questions.md § Resolved.)
+- Given the same endpoint, when 25 lookup requests are submitted from the
+  same source IP address as a burst of concurrent/parallel requests within
+  one minute (not strictly sequential), then requests beyond the 20th are
+  still throttled or rejected with a rate-limit message — the limit holds
+  under parallel load, not only under sequential requests.
 - Given the system as a whole, when any unauthenticated request is made,
   then there is no endpoint that returns a list of all complaint numbers or
   records (per BR-010 — no bulk public access; the only public capability is
@@ -302,20 +330,28 @@ depend on an open question and may need revision once the human answers.
   affected clerk is required to change that password at their next login.
 
 ## AC-018 — Blank/malformed public lookup input (verifies US-006, FR-020, BR-015)
-- Given the public status-lookup page, when a citizen submits the lookup
-  form with the complaint-number field left blank, then the page displays
+- Given the public status-lookup API endpoint, when a request is submitted
+  with the complaint-number field left blank, then the API returns the
+  message "Enter a valid complaint number" and no lookup request is made
+  against the complaint store.
+- Given the public status-lookup API endpoint, when a request is submitted
+  with only whitespace in the complaint-number field, then the API returns
   the message "Enter a valid complaint number" and no lookup request is
-  made against the complaint store.
-- Given the public status-lookup page, when a citizen submits the form with
-  only whitespace in the complaint-number field, then the page displays the
-  message "Enter a valid complaint number" and no lookup request is made.
-- Given the public status-lookup page, when a citizen submits a value that
-  does not match the expected complaint-number format (e.g., contains
-  disallowed characters, or is clearly the wrong shape/length), then the
-  page displays the message "Enter a valid complaint number" and no lookup
-  request is made — this is distinct from AC-007's "not found" message,
-  which only applies to a well-formed number that simply has no matching
-  record.
+  made.
+- Given the public status-lookup API endpoint, when a request is submitted
+  with a value that does not match the expected complaint-number format
+  (e.g., contains disallowed characters, or is clearly the wrong
+  shape/length), then the API returns the message "Enter a valid complaint
+  number" and no lookup request is made — this is distinct from AC-007's
+  "not found" message, which only applies to a well-formed number that
+  simply has no matching record.
+- Given blank, whitespace-only, or malformed-format input submitted
+  directly to the API (bypassing the Next.js frontend entirely, e.g., a
+  direct HTTP request), when database/query activity is inspected for that
+  request, then no statement touching the complaint table executes at all
+  — validation happens before any query is issued, and this holds
+  regardless of whether the request originated from the frontend or a
+  direct API call.
 
 ## AC-019 — Bootstrap of the first admin clerk account (verifies US-017, FR-015)
 - Given a fresh deployment with no admin clerk account yet in existence,

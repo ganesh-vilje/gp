@@ -104,6 +104,28 @@
     US-009's Implements list, BR-013 mitigation line). No product-
     requirements.md body change was needed for these beyond this note.
   - Q-001/Q-002 (blocking) intentionally NOT touched per instruction.
+- rev 4.1 (2026-09-09) — post-GATE_1 housekeeping: Q-001 and Q-002 recorded
+  as resolved (see open-questions.md § Resolved); no requirement text
+  changed.
+- rev 5 (2026-09-09) — post-GATE_2 amendment (technology stack approved):
+  - H4 (verbatim): "Use FastAPI as a JSON API with a separate Next.js
+    frontend," confirmed at GATE_2 Q8 (verbatim): "confirmed, public page
+    may require JavaScript." Citizen persona updated: no longer described
+    as "not assumed to have a smartphone"; now assumed to have a
+    JavaScript-capable browser, with a documented `<noscript>` fallback
+    message. Recorded under Constraints (stated by human).
+  - Q7 (verbatim): "option (b), fixed status messages." Resolves Q-016.
+    FR-009 rewritten: the public page shows a public status message drawn
+    from a fixed, enumerated set (one per status, wording defined in /ux);
+    the clerk's free-text note is never shown publicly.
+  - FR-020 reworded: the validation-before-lookup rule is restated as a
+    server-side (API) contract; the earlier "or at the very first server
+    check" no-JS allowance is removed (see business-rules.md BR-015).
+  - Q4 (verbatim): "keep 20/min." Resolves Q-013. NFR-005 reworded: 20
+    requests per IP per minute is now a confirmed human decision, not an
+    assumed default.
+  - MVP scope bullet and § Uncertain / needs human updated to reflect that
+    Q-013 and Q-016 are resolved.
 
 ## Problem
 A panchayat (village-level local government office) currently has no structured
@@ -122,8 +144,11 @@ use to self-check status later, reducing repeat visits/calls to the office.
   (assumption, see Assumptions).
 - **Citizen** — resident of the panchayat area who filed a complaint through
   the clerk and wants to check its status later using a phone or shared
-  computer. Not assumed to have a smartphone or reliable data connection;
-  may be visiting a low-cost/shared device or on a slow mobile network.
+  computer. Assumed to have a JavaScript-capable browser (ES2020+); citizens
+  without one are directed by a `<noscript>` message to contact the
+  panchayat office (decision H4, confirmed at GATE_2 Q8 — "confirmed, public
+  page may require JavaScript"). May still be on a low-cost/shared device or
+  a slow mobile network — see NFR-001.
 
 - **Admin clerk** — one of the clerks (decision H1, resolves Q-003), who has
   every regular-clerk permission plus two additional abilities: creating a
@@ -188,9 +213,12 @@ few hundred citizens checking status.
 - Clerk can correct citizen name/phone/description shortly after logging
   (data-entry correction window — see Open Questions).
 - Public, unauthenticated web page where a citizen enters an exact complaint
-  number and sees: complaint number, status, date logged, latest note. The
-  citizen's name and phone number are not shown at all on the public view;
-  the exact masking rule is pending Q-001 (see BR-005).
+  number and sees: complaint number, status, date logged, and a public
+  status message drawn from a fixed, enumerated set (one per status,
+  wording defined in /ux) — never the clerk's free-text note (Q-016
+  resolved at GATE_2, human decision Q7: "option (b), fixed status
+  messages"). The citizen's name and phone number are not shown at all on
+  the public view (Q-001 resolved at GATE_1 — see BR-005).
 - Clear "not found" message for an unmatched complaint number.
 - Single panchayat, single language (assumption — see Open Questions),
   low-cost hosting suitable for pilot scale.
@@ -223,7 +251,7 @@ few hundred citizens checking status.
 | FR-006 | An authenticated clerk shall be able to add a free-text note each time they change a complaint's status. | Should | Inferred (useful for follow-up) |
 | FR-007 | An authenticated clerk shall be able to list/search all complaints in the system (not restricted to complaints they personally created), filterable at least by status, ordered most-recently-created first. | Must (raised from Should — FR-005's "find ... from a list" depends on this) | Inferred (1-5 clerks, single shared role, share full visibility — Assumption A1) |
 | FR-008 | Any citizen shall be able to look up a complaint's status on a public web page by entering the exact complaint number, without authentication. | Must | Idea |
-| FR-009 | The public lookup result shall show complaint number, current status, date logged, and latest status note; the citizen's name and phone number are not shown at all on the public view (exact masking rule pending Q-001). | Must | Inferred (privacy) — see BR-005 |
+| FR-009 | The public lookup result shall show complaint number, current status, date logged, and a public status message drawn from a fixed, enumerated set (one per status, wording defined in /ux); the clerk's free-text note is never shown publicly. The citizen's name and phone number are not shown at all on the public view (Q-001 resolved at GATE_1; public-message rule resolved at GATE_2, Q-016). | Must | Inferred (privacy) — see BR-005; resolved GATE_2 Q7 |
 | FR-010 | The system shall show a clear "not found" message when an entered complaint number does not match any record. | Must | Idea |
 | FR-011 | The system shall keep a status-change history (previous status, new status, note, timestamp, editing clerk) per complaint, visible to clerks. | Must (raised from Should, P3-F2 — the business objective names an "auditable record" as core) | Inferred |
 | FR-012 | An authenticated clerk shall be able to correct citizen name/phone/description within a defined edit window after creation. | Should | Inferred (data-entry errors happen) |
@@ -234,7 +262,7 @@ few hundred citizens checking status.
 | FR-017 | An authenticated admin clerk shall be able to create a new clerk account (regular or admin) via the application, without needing the Operator's out-of-band mechanism. | Must | H1 (rev 3), resolves Q-003 |
 | FR-018 | An authenticated admin clerk shall be able to reset the password of any clerk account (regular or admin) via the application. | Must | H1 (rev 3), resolves Q-003 |
 | FR-019 | A non-admin (regular) clerk shall have no access to account-creation or password-reset functionality; a direct attempt to reach either (e.g., by URL) shall be denied. | Must | H1 (rev 3), resolves Q-003 |
-| FR-020 | The public lookup page shall validate the complaint-number input before performing any lookup; blank, whitespace-only, or malformed-format input shall show the message "Enter a valid complaint number" and no lookup request shall be made against the complaint store. | Must | H2 (rev 3), resolves Q2-F1 |
+| FR-020 | The API shall validate the complaint-number input server-side before performing any lookup; blank, whitespace-only, or malformed-format input shall return the message "Enter a valid complaint number" and no lookup shall be executed against the complaint store. This is a server-side (API) contract, independent of any client-side validation the frontend also performs. | Must | H2 (rev 3), resolves Q2-F1; restated as an API contract rev 5 per H4 (FastAPI/Next.js split) |
 
 ## Non-functional requirements
 
@@ -244,7 +272,7 @@ few hundred citizens checking status.
 | NFR-002 | The system shall support at least 5 concurrent clerk sessions and a few hundred citizen lookups per day while keeping public lookup responses within the 3-second target defined in NFR-001 (no separate, undefined "slowdown" threshold). | Must | Intake (pilot scale) | AC-010 |
 | NFR-003 | Clerk accounts shall require authentication (at minimum, username + password); citizen lookup shall require none. | Must | Idea + inferred | AC-001, AC-015 |
 | NFR-004 | The public lookup feature shall not expose any endpoint that lists or enumerates all complaints; only single-record lookup by exact number is public. | Must | Inferred (privacy/security) | AC-011 |
-| NFR-005 | The public lookup endpoint shall be rate-limited (assumption: no more than 20 attempts per IP per minute) to reduce automated guessing of complaint numbers. | Should | Inferred (security) — threshold tracked as Q-013 (important) | AC-011 |
+| NFR-005 | The public lookup endpoint shall be rate-limited to no more than 20 attempts per IP address per minute (confirmed human decision) to reduce automated guessing of complaint numbers. | Should | Human decision, GATE_2 Q4 ("keep 20/min."), resolves Q-013 | AC-011 |
 | NFR-006 | The system shall be deployable on low-cost hosting appropriate for a single-panchayat pilot; no specific technology is mandated at this stage. | Must | Intake | Not independently testable pre-architecture — this constrains the architect's hosting choice rather than defining a runtime behavior; compliance is assessed at architecture/deployment review, not via a product AC. |
 | NFR-007 | The system shall target at least 99% uptime during panchayat office hours; it is not required to be a 24/7 mission-critical system. | Should | Assumption (pilot scale) | Deferred to post-launch uptime monitoring — cannot be verified as a pre-release AC; architect/ops should define the monitoring mechanism. |
 | NFR-008 | Only citizen name, phone number, and complaint text/status/notes shall be stored as personal data; no government ID numbers (e.g., Aadhaar) shall be collected or stored. | Must | Intake (compliance/PII) | AC-012 |
@@ -262,7 +290,14 @@ few hundred citizens checking status.
   exist; this is a standalone tool for the pilot.
 
 ## Constraints (stated by human)
-- No specific technology stack, database, or hosting provider is chosen at
+- H4 (verbatim, GATE_2, 2026-09-09): "Use FastAPI as a JSON API with a
+  separate Next.js frontend." Confirmed consequence at GATE_2 Q8 (verbatim):
+  "confirmed, public page may require JavaScript." This is a technology/
+  architecture decision, recorded here without further elaboration — the
+  architect designs the API/frontend split; the analyst's only obligation
+  is the citizen-persona and FR-020 wording changes made in this rev (see
+  Changelog).
+- No other technology stack, database, or hosting provider is chosen at
   this stage — that is a later (architecture) phase.
 - No fixed deadline stated.
 - No special compliance regime; minimal PII only (name, phone, complaint
@@ -281,8 +316,8 @@ few hundred citizens checking status.
   not specify what a citizen sees on lookup. Displaying a citizen's full name
   and phone number to anyone who can guess or overhear a complaint number is
   a privacy risk with no stated business need. Proposed default: mask/omit
-  name and phone from the public view (FR-009, BR-005), pending human
-  confirmation (Q-001, blocking).
+  name and phone from the public view (FR-009, BR-005), confirmed by the
+  human at GATE_1 (Q-001, resolved).
 - **Multi-panchayat / multi-tenant design** — the idea's title and framing
   could imply reuse across panchayats later, but intake explicitly scopes
   this pilot to a single panchayat. Pushed back on building any
@@ -312,7 +347,8 @@ few hundred citizens checking status.
   bootstrap step itself is assumed to work). There is no citizen or clerk
   self-registration flow.
 - A3: Default complaint statuses are: New → In Progress → Resolved /
-  Rejected, with an optional final "Closed" state (see Q-002, blocking).
+  Rejected, with an optional final "Closed" state, with no skipping of
+  steps and no direct New→Rejected transition (Q-002 resolved at GATE_1).
 - A4: Complaint number format is left to the architect, but must be short
   enough for a clerk to read aloud or write on paper, and must not be
   guessable in bulk (no purely public listing).
@@ -348,10 +384,18 @@ few hundred citizens checking status.
 
 ## Uncertain / needs human
 See `.ai/requirements/open-questions.md` for the full, ranked list. As of
-rev 3, two questions remain blocking design: public-page PII display
-(Q-001) and complaint status/transition model (Q-002, which now also asks
-whether immediate New→Rejected transitions should be allowed — Q2-F7).
-Q-003 (single-vs-multi role model) is now **resolved** via human decision
-H1 — see the Resolved section of open-questions.md and Assumptions A1/A2/
-A10 above. A new nice-to-know question was added in rev 3: what happens if
-an admin clerk is themselves locked out (Q-015).
+GATE_1, the two previously-blocking questions are resolved: Q-001 (public
+page shows only complaint number, status, date logged, and a public status
+message — no citizen name/phone, and, per the GATE_2 Q-016 resolution
+below, no clerk free-text note either) and Q-002 (status flow is New → In
+Progress →
+Resolved/Rejected → optional Closed, no skipping of steps, and no direct
+New→Rejected transition). No question is currently marked blocking. Q-003
+(single-vs-multi role model) was likewise resolved earlier via human
+decision H1 — see the Resolved section of open-questions.md and
+Assumptions A1/A2/A10 above. Q-013 (public-lookup rate-limit threshold) and
+Q-016 (public "latest note" PII exposure) were resolved at GATE_2 (Q4:
+"keep 20/min."; Q7: "option (b), fixed status messages.") — see Resolved
+section of open-questions.md. Remaining open questions (Q-004 through
+Q-015, excluding the now-resolved Q-013) are important/nice-to-know only;
+see open-questions.md for the current list.
