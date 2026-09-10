@@ -331,3 +331,125 @@ project. Q3: accept name/phone search on the clerk list. Q4: accept voluntary
 password change. Q5: confirm 7 days." Consequence of Q1: a single strings
 module is a build requirement for /architecture and /plan (i18n-ready, English
 only at launch).
+
+## ADR-015 — Modular monolith layering
+Date: 2026-09-10 | Gate: GATE_5 | Status: accepted
+Decision: routers → services → repositories, dependencies point downward only; business rules
+live only in services (BR-002 transitions, 7-day window, history writes).
+Alternatives considered: rules in routers; a shared "utils" layer everything imports.
+Reasoning: testable without HTTP; one place per rule (AD-11).
+Risks & mitigations: none beyond discipline; enforced by an import-linter check at /plan.
+Human notes: none.
+
+## ADR-016 — Complaint-number codec
+Date: 2026-09-10 | Gate: GATE_5 | Status: accepted
+Decision: 8 Crockford-base32 symbols from `secrets` (40 random bits) + 1 weighted checksum
+symbol, displayed `XXXX-XXXXX`, case-insensitive, I/L→1 and O→0 accepted; stored canonical
+CHAR(9); validated before any DB access; insert-retry on unique conflict (AC-003).
+Alternatives considered: sequential/short numbers (enumerable, ADR-008 floor); UUID (unreadable by phone).
+Reasoning: shortest form meeting the ≥40-bit floor plus a checksum.
+Risks & mitigations: transcription errors — checksum rejects them client- and server-side.
+Human notes: Q3 — "yes, XXXX-XXXXX Crockford is fine."
+
+## ADR-017 — Concurrency on a complaint row
+Date: 2026-09-10 | Gate: GATE_5 | Status: accepted
+Decision: `SELECT … FOR UPDATE` on the complaint row; last-write-wins current state;
+unconditional history insert in the same transaction; transition legality re-checked inside
+the lock; staleness surfaced as a non-blocking advisory (BR-011, UX decision 4).
+Alternatives considered: optimistic version column returning 409.
+Reasoning: no audit gain from blocking a clerk mid-call; both writers' history is kept.
+Risks & mitigations: none material at 1–5 clerks.
+Human notes: none.
+
+## ADR-018 — Single error envelope
+Date: 2026-09-10 | Gate: GATE_5 | Status: accepted
+Decision: typed domain errors → `{error:{code,message,fields}}` with stable machine codes
+(error-catalog.md); the client maps codes to strings in the single strings module (AD-12).
+Anonymous ⇒ 401 `not_authenticated`; wrong role / failed CSRF ⇒ 403 `forbidden`; wrong
+current password ⇒ 422 `invalid_current_password`; oversized body ⇒ 413.
+Alternatives considered: ad-hoc HTTPException detail strings per route.
+Reasoning: translatable, testable, one client mapper.
+Risks & mitigations: drift between docs — error-catalog.md is the single source.
+Human notes: none.
+
+## ADR-019 — Session idle window
+Date: 2026-09-10 | Gate: GATE_5 | Status: accepted
+Decision: 45 min idle, 9 h absolute, browser-close expiry (within ADR-007's 30–60 range);
+both are environment variables.
+Alternatives considered: 30 min (re-login during a long call); 60 min (weakest approved end).
+Reasoning: office workflow.
+Risks & mitigations: hijacked-session bound is 45 min; see ADR-021 and threat #24.
+Human notes: Q4 — "45 min idle / 9 h absolute is fine."
+
+## ADR-020 — Client-IP derivation
+Date: 2026-09-10 | Gate: GATE_5 | Status: accepted
+Decision: the raw TCP peer address is authoritative; `Fly-Client-IP` / `X-Forwarded-For` are
+read by `core/client_ip.py` only when the peer is inside `TRUSTED_PEER_CIDRS`, else discarded;
+`TRUSTED_PROXY_HOPS` gates the XFF fallback; `selfcheck` refuses to start without both;
+verified by SEC-T21 against a real server process and by a live spoofing attempt plus a
+two-address distinctness check at /release.
+Alternatives considered: trusting the header because the platform "usually" sets it.
+Reasoning: a wrong hop count makes the rate-limit key attacker-chosen (SEC-F1).
+Risks & mitigations: a wrong CIDR collapses all keys into one bucket — runbook §12.3.
+Human notes: none.
+
+## ADR-021 — Session issuance on login
+Date: 2026-09-10 | Gate: GATE_5 | Status: accepted
+Decision: always mint a new session token on login; revoke only the session presented in the
+request's own cookie (fixation defence); concurrent sessions per clerk allowed; revoke-all on
+password change, admin reset and `reset-admin-password`. Interprets ADR-007's "rotation on login".
+Alternatives considered: revoke-all on login (logs the clerk's other device out mid-shift);
+reuse the presented session (fixation).
+Reasoning: office desktop + phone is a real pattern; `session.user_id` is NOT NULL so there is
+no pre-auth cookie to fixate.
+Risks & mitigations: read ceiling is keyed on user_id, not session, so extra sessions buy no
+extra PII budget (threat #24).
+Human notes: none.
+
+## ADR-022 — Idempotent complaint creation
+Date: 2026-09-10 | Gate: GATE_5 | Status: accepted
+Decision: `POST /api/complaints` carries a client-generated `client_request_id` UUID with a
+unique index; a duplicate returns the existing complaint with `duplicate: true`; the client
+shows "your complaint may already be saved — check the list" instead of a bare Retry.
+Alternatives considered: generic Retry on a non-idempotent POST (REL-F1: duplicates BR-008
+forbids deleting); a general idempotency-key layer (no driver).
+Reasoning: the audit trail is the core deliverable (AD-3).
+Risks & mitigations: key does not survive a closed tab — visible, not silent, duplicate.
+Human notes: none.
+
+## ADR-023 — The application is the only interpreter of forwarding headers
+Date: 2026-09-10 | Gate: GATE_5 | Status: accepted
+Decision: gunicorn runs `--worker-class app.worker.RawPeerWorker`, a `UvicornWorker` subclass
+with `CONFIG_KWARGS = {"proxy_headers": False, "forwarded_allow_ips": []}`, so
+`scope["client"]` is always the raw peer that ADR-020 depends on; `FORWARDED_ALLOW_IPS` must be
+unset; behavioural assertions in the worker/selfcheck. `.claude/project-config.md` `start:`
+and the tech-stack start commands are updated at /plan to drop `--proxy-headers` /
+`--forwarded-allow-ips`.
+Alternatives considered: omitting the flags (a no-op — gunicorn has no `--proxy-headers`,
+uvicorn's default is True); aligning `--forwarded-allow-ips` with CIDRs (takes literal hosts).
+Reasoning: SEC-S1/SEC-F1 — uvicorn rewrites the peer before app code runs.
+Risks & mitigations: advisory SEC-F1 (rev 4): move two assertions into the worker class.
+Human notes: none.
+
+## ADR-024 — Architecture approved (GATE_3 + GATE_5)
+Date: 2026-09-10 | Gate: GATE_3, GATE_5 | Status: accepted
+Decision: Approve .ai/architecture/ (rev 4), .ai/security/threat-model.md (rev 4, 65 threats:
+37 mitigated / 18 accepted / 10 n-a), .ai/database/ (rev 4: 7 tables, 12 indexes) and .ai/api/
+(rev 4: 15 endpoints — 4 public, 8 clerk, 3 admin) as the architecture baseline. Decisions
+D-A..D-E (auth, data core, API style, deploy, observability) and ADR-015..ADR-023 above.
+Internal approvals: cost-reviewer (rev 1), performance-scalability-reviewer (rev 2),
+reliability-reviewer (rev 2), security-reviewer (rev 4), architecture-reviewer (rev 4) after
+three rework loops (the cap). Estimated cost $11–16/month, ≈$265–385 over 24 months.
+Alternatives considered: recorded per decision in solution-architecture.md § Decisions and
+§ Complexity budget (queue, cache, staging, BFF/SSR, second service, feature flags rejected).
+Reasoning: every mechanism cites a driver AD-1..AD-12; every "mitigated" threat names a
+mechanism a reviewer traced to a component; the three residuals the human accepts are named.
+Risks & mitigations: (1) bulk PII read by a hijacked session — bounded at 120 reads/user/hour
+(threat #24, accepted); (2) single-vendor backups, no off-platform dump (threat #28, accepted
+per Q1); (3) captured OTP / malicious npm dependency — OTP consumed at first login, 72 h,
+revoke-all (threats #7/#15/#50, accepted). Non-blocking advisories (4 medium, ~12 low) in
+.ai/architecture/review-advisories.md for /plan.
+Human notes (verbatim, 2026-09-10): "yes. Q1: default, no dump destination for the test
+project. Q2: placeholders for now. Q3: yes, XXXX-XXXXX Crockford is fine. Q4: 45 min idle /
+9 h absolute is fine. Q5: yes, provision a second admin at go-live." Consequence of Q5: the
+/release go-live checklist provisions a second admin clerk (BR-013); OQ-5 default overridden.

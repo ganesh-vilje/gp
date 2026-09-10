@@ -4,9 +4,9 @@
 
 project_name: panchayat-complaint-tracker
 created: 2026-09-08
-current_phase: architecture
-gates_passed: GATE_1 GATE_2 GATE_4
-internal_approvals: requirements: rev 4, product-reviewer, requirements-qa-reviewer; tech-stack: rev 5 (FastAPI + Next.js per H3/H4), architecture-reviewer, security-reviewer, cost-reviewer; ux: rev 3, ux-reviewer, accessibility-reviewer, product-reviewer
+current_phase: plan
+gates_passed: GATE_1 GATE_2 GATE_4 GATE_3 GATE_5
+internal_approvals: requirements: rev 4, product-reviewer, requirements-qa-reviewer; tech-stack: rev 5 (FastAPI + Next.js per H3/H4), architecture-reviewer, security-reviewer, cost-reviewer; ux: rev 3, ux-reviewer, accessibility-reviewer, product-reviewer; architecture: rev 4 (cost-reviewer rev 1, performance-scalability-reviewer rev 2, reliability-reviewer rev 2, security-reviewer rev 4, architecture-reviewer rev 4)
 rework_count: 0
 
 ## Idea (verbatim from human)
@@ -26,8 +26,8 @@ I want to build a small tool where a panchayat clerk logs citizen complaints and
 | requirements    | approved    | .ai/requirements/        | GATE_1 2026-09-09, rev 4 |
 | tech-stack      | approved    | .ai/technology/          | GATE_2 2026-09-09, rev 5 (FastAPI JSON API + Next.js static export, Fly.io Mumbai per Q1) |
 | ux              | approved    | .ai/ux/, .ai/design/     | GATE_4 2026-09-09, rev 3 |
-| architecture    | in_progress | .ai/architecture/        |       |
-| plan            | pending     | .ai/development/         |       |
+| architecture    | approved    | .ai/architecture/, .ai/security/, .ai/database/, .ai/api/ | GATE_3+GATE_5 2026-09-10, rev 4 (3 rework loops) |
+| plan            | in_progress | .ai/development/         |       |
 | build           | pending     | (application code)       |       |
 | qa              | pending     | .ai/testing/, .ai/qa/    |       |
 | release         | pending     | .ai/release/             |       |
@@ -66,6 +66,20 @@ I want to build a small tool where a panchayat clerk logs citizen complaints and
 2026-09-09 | ux | rev 2 | accessibility-reviewer | CHANGES_REQUIRED | 0/2/2/4
 2026-09-09 | ux | rev 3 | accessibility-reviewer | APPROVED | 0/0/0/2
 2026-09-09 | ux | rev 3 | HUMAN (GATE_4) | APPROVED — "yes" + answers Q1–Q5 (see ADR-014) | phase → architecture
+2026-09-09 | architecture | rev 1 | cost-reviewer | APPROVED | 0/0/2/2
+2026-09-09 | architecture | rev 1 | performance-scalability-reviewer | CHANGES_REQUIRED | 0/0/3/1
+2026-09-09 | architecture | rev 1 | reliability-reviewer | CHANGES_REQUIRED | 0/2/4/1
+2026-09-09 | architecture | rev 1 | security-reviewer | CHANGES_REQUIRED | 0/4/6/5
+2026-09-09 | architecture | rev 1 | architecture-reviewer | CHANGES_REQUIRED | 0/4/6/3
+2026-09-09 | architecture | rev 2 | performance-scalability-reviewer | APPROVED | 0/0/0/1
+2026-09-09 | architecture | rev 2 | reliability-reviewer | APPROVED | 0/0/0/2
+2026-09-09 | architecture | rev 2 | architecture-reviewer | CHANGES_REQUIRED | 0/3/3/2
+2026-09-09 | architecture | rev 2 | security-reviewer | CHANGES_REQUIRED | 0/2/4/5
+2026-09-09 | architecture | rev 3 | architecture-reviewer | CHANGES_REQUIRED | 0/1/3/1
+2026-09-09 | architecture | rev 3 | security-reviewer | CHANGES_REQUIRED | 0/3/2/3
+2026-09-10 | architecture | rev 4 | security-reviewer | APPROVED | 0/0/3/6
+2026-09-10 | architecture | rev 4 | architecture-reviewer | APPROVED | 0/0/1/1
+2026-09-10 | architecture | rev 4 | HUMAN (GATE_3+GATE_5) | APPROVED — "yes" + answers Q1–Q5 (see ADR-024) | phase → plan
 
 ## Known risks (summary — details in risks.md)
 
