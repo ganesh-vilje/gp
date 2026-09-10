@@ -32,6 +32,12 @@ class Settings:
     # be printed, logged, or captured in a traceback — see __repr__ below,
     # which enforces the same rule independently of dataclass's own repr.
     environment: str = field()
+    # Connection string for both the request and limiter engines
+    # (app/db/engine.py, T-004). A secret-shaped value (embeds credentials)
+    # so it is declared `repr=False` — see the class docstring above and
+    # `__repr__` below, which redacts it independently of dataclass's own
+    # repr.
+    database_url: str = field(repr=False)
 
     @property
     def docs_enabled(self) -> bool:
@@ -66,4 +72,10 @@ def get_settings() -> Settings:
             "ENVIRONMENT must be set to exactly one of "
             f"{sorted(_VALID_ENVIRONMENTS)} (case-sensitive), got {environment!r}"
         )
-    return Settings(environment=environment)
+    database_url = os.environ.get("DATABASE_URL")
+    if not database_url:
+        raise ImproperlyConfigured(
+            "DATABASE_URL must be set (e.g. "
+            "postgresql+psycopg://user:pass@host:5432/db) — fail closed, no default."
+        )
+    return Settings(environment=environment, database_url=database_url)

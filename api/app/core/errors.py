@@ -121,6 +121,16 @@ class DependencyUnavailable(DomainError):
     code = "service_unavailable"
 
 
+class AppendOnlyViolation(DomainError):
+    """An `UPDATE`/`DELETE` was attempted against an append-only table
+    (`complaint_status_history`, `complaint_edit_history`, `security_event`
+    — BR-008). Raised by `app/db/guard.py` before the statement reaches the
+    database. This indicates a coding defect, not a user-triggerable
+    condition (coding-guidelines.md § Forbidden patterns: "do not write code
+    that relies on being caught — do not write it at all"), so it keeps the
+    base `internal_error` code rather than a new error-catalog entry."""
+
+
 def to_envelope(error: DomainError, *, request_id: str) -> dict[str, Any]:
     """Serialise `error` into the single envelope shape (ADR-018).
 

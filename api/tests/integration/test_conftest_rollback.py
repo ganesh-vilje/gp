@@ -10,10 +10,10 @@ test of a brand-new run.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
-from typing import Any
+from collections.abc import Callable
 
 import pytest
+from app.db.models import ClerkAccount
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -32,14 +32,14 @@ pytestmark = pytest.mark.integration
 
 
 def test_make_clerk_is_visible_within_its_own_transaction(
-    db_session: Session, make_clerk: Callable[..., Mapping[str, Any]]
+    db_session: Session, make_clerk: Callable[..., ClerkAccount]
 ) -> None:
     clerk = make_clerk(username="test_clerk_rollback_scaffold")
 
     row = (
         db_session.execute(
             text("SELECT username FROM clerk_account WHERE id = :id"),
-            {"id": clerk["id"]},
+            {"id": clerk.id},
         )
         .mappings()
         .one()

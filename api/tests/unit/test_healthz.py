@@ -12,6 +12,7 @@ import os
 # module collection; every test below sets its own value with
 # `monkeypatch.setenv` and calls `create_app()` again to build its own app.
 os.environ.setdefault("ENVIRONMENT", "test")
+os.environ.setdefault("DATABASE_URL", "postgresql+psycopg://x:x@localhost:5432/x")
 
 import pytest  # noqa: E402
 from app.main import create_app  # noqa: E402
@@ -73,7 +74,7 @@ def test_get_settings_wrong_case_environment_raises(monkeypatch: pytest.MonkeyPa
 
 
 def test_settings_repr_shows_only_field_names_and_environment_value() -> None:
-    settings = Settings(environment="dev")
+    settings = Settings(environment="dev", database_url="postgresql+psycopg://x:x@localhost:5432/x")
 
     text = repr(settings)
 
@@ -82,3 +83,23 @@ def test_settings_repr_shows_only_field_names_and_environment_value() -> None:
     # Locks the contract for future secret fields: __repr__ must never fall
     # back to the dataclass default, which would print every field's value.
     assert text.startswith("Settings(")
+
+
+def test_settings_repr_redacts_database_url() -> None:
+    settings = Settings(
+        environment="dev", database_url="postgresql+psycopg://secretuser:secretpass@db/panchayat"
+    )
+
+    text = repr(settings)
+
+    assert "secretuser" not in text
+    assert "secretpass" not in text
+    assert "database_url=<redacted>" in text
+
+
+def test_get_settings_missing_database_url_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+
+    with pytest.raises(ImproperlyConfigured):
+        get_settings()
