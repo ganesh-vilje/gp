@@ -453,3 +453,30 @@ Human notes (verbatim, 2026-09-10): "yes. Q1: default, no dump destination for t
 project. Q2: placeholders for now. Q3: yes, XXXX-XXXXX Crockford is fine. Q4: 45 min idle /
 9 h absolute is fine. Q5: yes, provision a second admin at go-live." Consequence of Q5: the
 /release go-live checklist provisions a second admin clerk (BR-013); OQ-5 default overridden.
+
+## ADR-025 — Implementation plan approved (GATE_6)
+Date: 2026-09-10 | Gate: GATE_6 | Status: accepted
+Decision: Approve .ai/development/ (rev 4: implementation-plan, milestones, coding-guidelines,
+change-impact-map, technical-debt) and .ai/testing/ (rev 3: test-strategy, test-cases,
+regression-plan, test-plan) as the build baseline. 51 tasks (T-001..T-049 plus T-003a, T-006a,
+T-010a; T-015 folded away) in 5 milestones; 19/19 ACs covered; 142 test cases (128 always-run,
+~8 min; 2 nightly; 12 release-gate). Internal approvals: architecture-reviewer (rev 3),
+test-architect (rev 4) after 3 rework loops (the cap). Application code is now unlocked.
+Sub-decisions fixed by the plan: injectable clock (api/app/core/clock.py) instead of a
+time-freezing library; middleware chain registered in two steps (rows 4-6 at T-006, rows 1-3 at
+T-010a) with the exact order asserted by TC-SEC-039; gunicorn binds literal 8080 (Fly sets no
+$PORT); dev server runs with --no-proxy-headers for ADR-023 parity; import-linter not adopted
+(hand-written import-graph test + CI greps); voluntary password change and name/phone search are
+in-scope tasks (ADR-014 Q3/Q4), not open questions.
+Alternatives: Docker-based local Postgres (rejected — Docker not installed, Q1); branch per task
+off main with agent merges (rejected — human merges milestone branches into master, Q4);
+freezegun/time-machine (rejected in favour of an injectable clock, no new dependency).
+Reasoning: every task cites a runnable command and existing TC ids; fixtures precede consumers;
+the first slice is demoable end-to-end without M2-M5.
+Human notes (verbatim, 2026-09-10): "yes. Q1: Python 3.11.9 on the machine (let uv install 3.13
+for the project), Node 22.21.0, uv 0.10.8, Docker NOT installed — plan T-001 to work with a
+locally installed PostgreSQL 17 instead, and tell me what to install. Q2: yes GitHub Actions; I
+will add the remote before T-016. Q3: yes, verify and bump uv to 0.10.8 at T-001. Q4: feature
+branch per milestone, I merge to master." Consequences: project-config.md db_start/toolchain/
+build lines updated; T-001/T-017 and the M5 demo note that Docker builds run in CI only; git
+workflow section rewritten for build/M1..M5 branches off master.
