@@ -1,0 +1,73 @@
+# Task Status — panchayat-complaint-tracker
+
+Created 2026-09-10 by the /implement orchestrator from implementation-plan.md rev 4.
+One row per task. `status` ∈ todo / in_progress / done / blocked. The orchestrator is the only writer.
+Evidence = the orchestrator's own re-run summary line (not the developer's paste).
+
+| id | milestone | status | branch | commit | evidence | reviewers |
+|---|---|---|---|---|---|---|
+| T-001 | M1 | todo | | | | |
+| T-002 | M1 | todo | | | | |
+| T-003 | M1 | todo | | | | |
+| T-003a | M1 | todo | | | | |
+| T-004 | M1 | todo | | | | |
+| T-005 | M1 | todo | | | | |
+| T-006 | M1 | todo | | | | |
+| T-007 | M1 | todo | | | | |
+| T-006a | M1 | todo | | | | |
+| T-008 | M1 | todo | | | | |
+| T-009 | M1 | todo | | | | |
+| T-010 | M1 | todo | | | | |
+| T-010a | M1 | todo | | | | |
+| T-011 | M1 | todo | | | | |
+| T-012 | M1 | todo | | | | |
+| T-013 | M1 | todo | | | | |
+| T-014 | M1 | todo | | | | |
+| T-016 | M1 | todo | | | | |
+| T-017 | M1 | todo | | | | |
+| T-018 | M2 | todo | | | | |
+| T-019 | M2 | todo | | | | |
+| T-020 | M2 | todo | | | | |
+| T-021 | M2 | todo | | | | |
+| T-022 | M2 | todo | | | | |
+| T-023 | M2 | todo | | | | |
+| T-024 | M2 | todo | | | | |
+| T-025 | M3 | todo | | | | |
+| T-026 | M3 | todo | | | | |
+| T-027 | M3 | todo | | | | |
+| T-028 | M3 | todo | | | | |
+| T-029 | M3 | todo | | | | |
+| T-030 | M3 | todo | | | | |
+| T-031 | M3 | todo | | | | |
+| T-032 | M3 | todo | | | | |
+| T-033 | M4 | todo | | | | |
+| T-034 | M4 | todo | | | | |
+| T-035 | M4 | todo | | | | |
+| T-036 | M4 | todo | | | | |
+| T-037 | M4 | todo | | | | |
+| T-038 | M4 | todo | | | | |
+| T-039 | M5 | todo | | | | |
+| T-040 | M5 | todo | | | | |
+| T-041 | M5 | todo | | | | |
+| T-042 | M5 | todo | | | | |
+| T-043 | M5 | todo | | | | |
+| T-044 | M5 | todo | | | | |
+| T-045 | M5 | todo | | | | |
+| T-046 | M5 | todo | | | | |
+| T-047 | M5 | todo | | | | |
+| T-048 | M5 | todo | | | | |
+| T-049 | M5 | todo | | | | |
+
+## Dependencies (from implementation-plan.md)
+
+T-001 — · T-002 — · T-003 ← T-001 · T-003a ← T-001, T-003 · T-004 ← T-003, T-003a · T-005 ← T-001 ·
+T-006 ← T-004, T-005 · T-007 ← T-006 · T-006a ← T-003a, T-004, T-006, T-007 · T-008 ← T-006, T-006a, T-007 ·
+T-009 ← T-005, T-006, T-006a, T-008 · T-010 ← T-003, T-005, T-006, T-006a · T-010a ← T-001, T-006, T-009, T-010 ·
+T-011 ← T-002, T-008, T-009, T-010, T-010a · T-012 ← T-011 · T-013 ← T-011, T-009 · T-014 ← T-011, T-010 ·
+T-016 ← T-001, T-002, T-006a · T-017 ← T-001
+
+## Notes
+
+- No GitHub remote exists yet (GATE_6 Q2: human adds it before T-016). Until then tasks are committed
+  directly on the milestone branch `build/M<n>`; per-task PRs start once the remote exists.
+- Local DB: PostgreSQL 16 (project-config.md `db_start`); production/CI: 17.
