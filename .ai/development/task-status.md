@@ -11,7 +11,7 @@ Evidence = the orchestrator's own re-run summary line (not the developer's paste
 | T-003 | M1 | done | build/M1 | 0805ab2 | alembic up/down/up clean on PG16 both DBs; 7 tables, 2 enums, 12 indexes; ruff/mypy clean (alembic check → T-004) | code-reviewer, security-reviewer (2 rounds) |
 | T-003a | M1 | in_progress | build/M1 | | | |
 | T-004 | M1 | todo | | | | |
-| T-005 | M1 | in_progress | build/M1 | | | |
+| T-005 | M1 | done | build/M1 | 19862a9 | 48 unit tests pass (TC-UNIT-001..004, 007..010); ruff/format/mypy clean | code-reviewer, security-reviewer (2 rounds) |
 | T-006 | M1 | todo | | | | |
 | T-007 | M1 | todo | | | | |
 | T-006a | M1 | todo | | | | |
