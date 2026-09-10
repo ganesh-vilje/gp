@@ -66,6 +66,14 @@ implementation team. They do not block `/build` and are listed here purely so no
   and are ordinary in-scope build tasks, not debt — see implementation-plan.md § "ADR-014 scope
   note.")
 
+## Build-phase additions (appended by the /implement orchestrator; documentation drift, not code)
+
+| id | Found at | Item | Owner | Revisit trigger |
+|---|---|---|---|---|
+| TD-B01 | T-001 code review (2026-09-10) | backend-architecture.md §1 line 14 labels `app/settings.py` "pydantic-settings", but dependency-strategy.md § "Deliberately not added" excludes that package. Code follows the dependency budget: a frozen dataclass over `os.environ`. The architecture label is stale. | solution-architect (doc fix) | next architecture doc revision |
+| TD-B02 | T-001 security review (2026-09-10) | Task rows and tests cite BR-010 for the "docs/redoc/openapi 404 in prod" control, but BR-010's text is "no bulk public access". Real sources: backend-architecture.md §11 and dependency-strategy.md ("/docs → 404 test"). Behaviour is correct; the citation is wrong. | requirements-analyst (AC/BR linkage) | next requirements revision |
+| TD-B03 | T-001 (2026-09-10) | ENVIRONMENT is fail-closed at settings level (unset/invalid → startup error). selfcheck (T-025/T-043) must additionally assert ENVIRONMENT == prod under the production profile so a mis-set non-prod value cannot reach a prod deploy. | backend-developer at T-043 | T-043 done-condition |
+
 ## Self-audit
 
 - Every carried advisory in `.ai/architecture/review-advisories.md` appears either as a task in
