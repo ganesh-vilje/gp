@@ -7,11 +7,11 @@ Evidence = the orchestrator's own re-run summary line (not the developer's paste
 | id | milestone | status | branch | commit | evidence | reviewers |
 |---|---|---|---|---|---|---|
 | T-001 | M1 | done | build/M1 | 422bb48 | ruff/format/mypy clean; 11 unit tests pass; curl /healthz 200 (port 8001) | code-reviewer, security-reviewer (2 rounds) |
-| T-002 | M1 | in_progress | build/M1 | | | |
-| T-003 | M1 | todo | | | | |
+| T-002 | M1 | done | build/M1 | fce5c37 | npm ci/build/biome(8 files)/tsc clean; npm audit high=0; signatures verified | code-reviewer, security-reviewer (2 rounds) |
+| T-003 | M1 | in_progress | build/M1 | | | |
 | T-003a | M1 | todo | | | | |
 | T-004 | M1 | todo | | | | |
-| T-005 | M1 | todo | | | | |
+| T-005 | M1 | in_progress | build/M1 | | | |
 | T-006 | M1 | todo | | | | |
 | T-007 | M1 | todo | | | | |
 | T-006a | M1 | todo | | | | |
