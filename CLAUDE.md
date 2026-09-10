@@ -19,6 +19,6 @@ This project is run by the **AI Engineering Organization** installed in
   production deploy — the human does those.
 
 ## Commands
-`/status` · `/requirements` · `/tech-stack` · `/ux` · `/architecture` · `/plan`
-· `/build` · `/test-app` `/smoke-test` `/regression-test` (app-qa skill) ·
+`/status` · `/requirements` · `/tech-stack` · `/ux` · `/architecture` · `/implementation-plan`
+· `/implement` · `/test-app` `/smoke-test` `/regression-test` (app-qa skill) ·
 `/release`
