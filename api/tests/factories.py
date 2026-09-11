@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 from hashlib import sha256
 from uuid import uuid4
 
+from app.core import hashing
 from app.core.clock import now as clock_now
 from app.db.models import ClerkAccount, Complaint
 from app.db.models.session import Session as SessionRow
@@ -52,11 +53,23 @@ def make_clerk(
     username: str | None = None,
     is_admin: bool = False,
     must_change_password: bool = False,
+    password: str | None = None,
 ) -> ClerkAccount:
-    """Factory for a synthetic `clerk_account` row."""
+    """Factory for a synthetic `clerk_account` row.
+
+    `password`, when given, is hashed with the real `core.hashing
+    .hash_password` (the same call `app.cli.bootstrap_admin` uses) so the
+    row can actually authenticate via `services.auth.login` — used by
+    `tests/conftest.py`'s `seeded_accounts`/`live_seeded_accounts`
+    (`clerk_test`, T-006a) until FR-017's account-creation service
+    (T-033) exists. Omitted (the default), the row gets the syntactic-only
+    placeholder hash below, which cannot be used to log in.
+    """
     clerk = ClerkAccount(
         username=username or f"test_clerk_{uuid4().hex[:10]}",
-        password_hash=_FAKE_ARGON2_LOOKING_HASH_FOR_TESTS,
+        password_hash=(
+            hashing.hash_password(password) if password else _FAKE_ARGON2_LOOKING_HASH_FOR_TESTS
+        ),
         is_admin_clerk=is_admin,
         must_change_password=must_change_password,
         password_is_otp=False,
