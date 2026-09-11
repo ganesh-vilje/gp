@@ -15,7 +15,7 @@ Evidence = the orchestrator's own re-run summary line (not the developer's paste
 | T-006 | M1 | done | build/M1 | 812252e | integration 32 passed, unit 116 passed, ruff/format/mypy clean, grep suite 6/6 | code-reviewer, security-reviewer (2 rounds) |
 | T-007 | M1 | done | build/M1 | 2a4ed28 | integration 43 passed (TC-API-130/132), unit 117 passed, ruff/format/mypy clean, grep 6/6; manual bootstrap run + no-op | code-reviewer, security-reviewer (2 rounds) |
 | T-006a | M1 | done | build/M1 | 8b8cbee | integration 48 passed ×2 (live_server, query_counter, seeded accounts), unit 119 passed, ruff/format/mypy clean, test DB empty | code-reviewer (2 rounds) |
-| T-008 | M1 | in_progress | build/M1 | | | |
+| T-008 | M1 | done | build/M1 | 007b18a | integration 58 passed (TC-API-001..003, TC-SEC-001, ARCH-T33), unit 145 passed, ruff/format/mypy clean, grep 6/6 | code-reviewer, security-reviewer |
 | T-009 | M1 | todo | | | | |
 | T-010 | M1 | todo | | | | |
 | T-010a | M1 | todo | | | | |
@@ -70,6 +70,8 @@ T-016 ← T-001, T-002, T-006a · T-017 ← T-001
 
 - T-004 note (from T-003a review): conftest.py is 331 lines because the three factories live in it; when T-004 rewrites them to ORM models, split them into `tests/factories.py`. `alembic check` becomes part of T-004's done-condition (models must match migration 0001).
 - T-009/T-010 note (from T-006a review): the query_counter touched-table regex in tests/conftest.py scans raw statement text; strip string literals before the AC-018 zero-SQL assertions lean on it.
+- T-010a follow-ups (from T-008 security review, APPROVED-with-notes): (1) unhandled-exception handler should log `type(exc).__name__` / traceback to stdout with the request id (never to the client), relying on the redaction filter; (2) add a logout test for the branch that mints a fresh `__Host-csrfseed` cookie and assert its HttpOnly/Secure/SameSite/Path; (3) assert no `Domain=` attribute on the session cookie.
+- /implement invocation 2 (2026-09-11): T-004, T-006, T-007, T-006a, T-008 done. T-017 deferred until CI exists (T-016) — its only evidence is a Docker build in CI. Next: T-009.
 - /implement invocation 1 (2026-09-10): T-001, T-002, T-003, T-003a, T-005 done. Next: T-004.
 
 - No GitHub remote exists yet (GATE_6 Q2: human adds it before T-016). Until then tasks are committed
