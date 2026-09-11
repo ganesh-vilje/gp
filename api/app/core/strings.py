@@ -43,6 +43,8 @@ _STRINGS: dict[str, str] = {
     # (error-catalog.md's "Public-safe message key" column).
     "errors.not_authenticated": "Please sign in to continue.",
     "errors.forbidden": "You don't have permission to do that.",
+    # T-008 — the single exception-handler set (ADR-018).
+    "errors.internal_error": "Something went wrong. Please try again.",
 }
 
 
