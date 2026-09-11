@@ -12,6 +12,13 @@ error-catalog.md's `Public-safe message key` column names the full set of
 keys a later task (the error-catalog HTTP mapping in T-006, and the
 services/routers that raise each domain error) will add here — this module,
 not a literal in that code, is where that copy belongs.
+
+AD-12's scope is product-facing (HTTP response / frontend) text. Operator-
+only output — `app/cli/*` terminal prints, reachable only via `fly ssh
+console`, never HTTP (T-007) — is not a "user-visible string" in AD-12's
+sense and may print literals directly; there is no citizen/clerk-facing
+audience and no Telugu-localisation need for an operator shell. T-035's
+CLI commands should follow the same convention.
 """
 
 from __future__ import annotations

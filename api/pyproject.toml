@@ -25,6 +25,9 @@ dev = [
   "pip-audit>=2.9,<3.0",
 ]
 
+[project.scripts]
+bootstrap-admin = "app.cli.bootstrap_admin:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
