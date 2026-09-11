@@ -13,8 +13,8 @@ Evidence = the orchestrator's own re-run summary line (not the developer's paste
 | T-004 | M1 | done | build/M1 | b4e988e | integration 23 passed (TC-SEC-018, TC-SEC-006 ORM half), unit 54 passed, alembic check clean, ruff/format/mypy clean | code-reviewer, security-reviewer, performance-scalability-reviewer (3 rounds) |
 | T-005 | M1 | done | build/M1 | 19862a9 | 48 unit tests pass (TC-UNIT-001..004, 007..010); ruff/format/mypy clean | code-reviewer, security-reviewer (2 rounds) |
 | T-006 | M1 | done | build/M1 | 812252e | integration 32 passed, unit 116 passed, ruff/format/mypy clean, grep suite 6/6 | code-reviewer, security-reviewer (2 rounds) |
-| T-007 | M1 | in_progress | build/M1 | | | |
-| T-006a | M1 | todo | | | | |
+| T-007 | M1 | done | build/M1 | 2a4ed28 | integration 43 passed (TC-API-130/132), unit 117 passed, ruff/format/mypy clean, grep 6/6; manual bootstrap run + no-op | code-reviewer, security-reviewer (2 rounds) |
+| T-006a | M1 | in_progress | build/M1 | | | |
 | T-008 | M1 | todo | | | | |
 | T-009 | M1 | todo | | | | |
 | T-010 | M1 | todo | | | | |
