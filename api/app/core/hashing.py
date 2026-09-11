@@ -17,8 +17,9 @@
   (security-architecture.md §9), which belongs to that later task, not here.
 - `sha256(token)` (also named for this module in backend-architecture.md
   §1's module layout, for hashing the opaque session token before it is
-  stored) is **deferred to T-006** (session lifecycle) — no test in T-005
-  needs it, and adding it now without a caller would be speculative.
+  stored) is implemented in **T-006** (session lifecycle): a plain hex
+  SHA-256 digest of the opaque `secrets.token_urlsafe(32)` session token,
+  matching `session.token_hash CHAR(64)` (backend-architecture.md §3).
 """
 
 from __future__ import annotations
@@ -71,3 +72,15 @@ def h(username: str, salt: bytes) -> str:
     """
     digest = hashlib.sha256(username.casefold().encode("utf-8") + salt).hexdigest()
     return digest[:_USERNAME_HASH_HEX_LENGTH]
+
+
+def sha256(token: str) -> str:
+    """Return the hex SHA-256 digest of the opaque session token `token`.
+
+    `services.auth` stores only this digest in `session.token_hash` — the
+    plaintext token exists only in the `__Host-session` cookie
+    (backend-architecture.md §3). Deterministic, no salt: the token itself
+    is already a 256-bit `secrets.token_urlsafe(32)` value, so a rainbow
+    table over it is infeasible.
+    """
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()

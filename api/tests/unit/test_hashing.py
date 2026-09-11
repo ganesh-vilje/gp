@@ -72,3 +72,16 @@ def test_h_is_deterministic_for_a_fixed_username_and_salt() -> None:
     salt = b"a" * 32
 
     assert hashing.h("clerk_test", salt) == hashing.h("clerk_test", salt)
+
+
+def test_sha256_is_deterministic_hex_digest() -> None:
+    """T-006: `sha256(token)` matches `session.token_hash CHAR(64)`."""
+    digest = hashing.sha256("some-opaque-session-token")
+
+    assert digest == hashing.sha256("some-opaque-session-token")
+    assert len(digest) == 64
+    int(digest, 16)  # must be valid hex; raises ValueError otherwise
+
+
+def test_sha256_differs_across_tokens() -> None:
+    assert hashing.sha256("token-a") != hashing.sha256("token-b")

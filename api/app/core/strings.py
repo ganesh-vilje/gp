@@ -32,6 +32,10 @@ _STRINGS: dict[str, str] = {
     "validation.password.similar_to_username": "Password must not be similar to the username.",
     "validation.password.entirely_numeric": "Password must not be entirely numbers.",
     "validation.password.common_password": "That password is too common. Choose a different one.",
+    # T-006 — services.auth / middleware.authz / middleware.csrf
+    # (error-catalog.md's "Public-safe message key" column).
+    "errors.not_authenticated": "Please sign in to continue.",
+    "errors.forbidden": "You don't have permission to do that.",
 }
 
 

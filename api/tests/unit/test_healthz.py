@@ -13,6 +13,9 @@ import os
 # `monkeypatch.setenv` and calls `create_app()` again to build its own app.
 os.environ.setdefault("ENVIRONMENT", "test")
 os.environ.setdefault("DATABASE_URL", "postgresql+psycopg://x:x@localhost:5432/x")
+os.environ.setdefault("SECRET_KEY", "x" * 32)
+os.environ.setdefault("USERNAME_HASH_SALT", "y" * 32)
+os.environ.setdefault("ALLOWED_ORIGINS", "https://app.example.in")
 
 import pytest  # noqa: E402
 from app.main import create_app  # noqa: E402
@@ -73,8 +76,20 @@ def test_get_settings_wrong_case_environment_raises(monkeypatch: pytest.MonkeyPa
         get_settings()
 
 
+def _build_settings(**overrides: object) -> Settings:
+    defaults: dict[str, object] = {
+        "environment": "dev",
+        "database_url": "postgresql+psycopg://x:x@localhost:5432/x",
+        "secret_key": "s" * 32,
+        "username_hash_salt": "u" * 32,
+        "allowed_origins": ("http://localhost:3000",),
+    }
+    defaults.update(overrides)
+    return Settings(**defaults)  # type: ignore[arg-type]
+
+
 def test_settings_repr_shows_only_field_names_and_environment_value() -> None:
-    settings = Settings(environment="dev", database_url="postgresql+psycopg://x:x@localhost:5432/x")
+    settings = _build_settings(environment="dev")
 
     text = repr(settings)
 
@@ -86,8 +101,8 @@ def test_settings_repr_shows_only_field_names_and_environment_value() -> None:
 
 
 def test_settings_repr_redacts_database_url() -> None:
-    settings = Settings(
-        environment="dev", database_url="postgresql+psycopg://secretuser:secretpass@db/panchayat"
+    settings = _build_settings(
+        database_url="postgresql+psycopg://secretuser:secretpass@db/panchayat"
     )
 
     text = repr(settings)
@@ -97,9 +112,140 @@ def test_settings_repr_redacts_database_url() -> None:
     assert "database_url=<redacted>" in text
 
 
+def test_settings_repr_redacts_secret_key_and_username_hash_salt() -> None:
+    settings = _build_settings(
+        secret_key="super-secret-csrf-key-value-000",
+        username_hash_salt="super-secret-username-salt-0000",
+    )
+
+    text = repr(settings)
+
+    assert "super-secret-csrf-key-value-000" not in text
+    assert "super-secret-username-salt-0000" not in text
+    assert "secret_key=<redacted>" in text
+    assert "username_hash_salt=<redacted>" in text
+
+
 def test_get_settings_missing_database_url_raises(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ENVIRONMENT", "dev")
     monkeypatch.delenv("DATABASE_URL", raising=False)
+
+    with pytest.raises(ImproperlyConfigured):
+        get_settings()
+
+
+def test_get_settings_missing_secret_key_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.delenv("SECRET_KEY", raising=False)
+
+    with pytest.raises(ImproperlyConfigured):
+        get_settings()
+
+
+def test_get_settings_missing_username_hash_salt_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.delenv("USERNAME_HASH_SALT", raising=False)
+
+    with pytest.raises(ImproperlyConfigured):
+        get_settings()
+
+
+def test_get_settings_missing_allowed_origins_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
+
+    with pytest.raises(ImproperlyConfigured):
+        get_settings()
+
+
+def test_get_settings_parses_comma_separated_allowed_origins(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.setenv("ALLOWED_ORIGINS", "https://www.example.in, https://api.example.in")
+
+    settings = get_settings()
+
+    assert settings.allowed_origins == ("https://www.example.in", "https://api.example.in")
+
+
+# --- F2 (T-006 review): ALLOWED_ORIGINS entries fail closed ---------------
+
+
+@pytest.mark.parametrize(
+    "origin",
+    [
+        "*",
+        "null",
+        "https://example.in/some/path",
+        "https://example.in?x=1",
+        "https://example.in#fragment",
+        "not-a-url-at-all",
+        "ftp://example.in",
+    ],
+)
+def test_get_settings_rejects_malformed_allowed_origin_entries(
+    monkeypatch: pytest.MonkeyPatch, origin: str
+) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.setenv("ALLOWED_ORIGINS", origin)
+
+    with pytest.raises(ImproperlyConfigured):
+        get_settings()
+
+
+def test_get_settings_rejects_non_https_origin_outside_dev(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "staging")
+    monkeypatch.setenv("ALLOWED_ORIGINS", "http://example.in")
+
+    with pytest.raises(ImproperlyConfigured):
+        get_settings()
+
+
+def test_get_settings_accepts_http_localhost_origin_in_dev(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.setenv("ALLOWED_ORIGINS", "http://localhost:3000")
+
+    settings = get_settings()
+
+    assert settings.allowed_origins == ("http://localhost:3000",)
+
+
+def test_get_settings_accepts_a_well_formed_https_origin(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.setenv("ALLOWED_ORIGINS", "https://www.example.in")
+
+    settings = get_settings()
+
+    assert settings.allowed_origins == ("https://www.example.in",)
+
+
+# --- F3 (T-006 review): SECRET_KEY / USERNAME_HASH_SALT length + distinctness --
+
+
+def test_get_settings_rejects_short_secret_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.setenv("SECRET_KEY", "too-short")
+
+    with pytest.raises(ImproperlyConfigured):
+        get_settings()
+
+
+def test_get_settings_rejects_short_username_hash_salt(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.setenv("USERNAME_HASH_SALT", "too-short")
+
+    with pytest.raises(ImproperlyConfigured):
+        get_settings()
+
+
+def test_get_settings_rejects_equal_secret_key_and_username_hash_salt(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    same_value = "z" * 32
+    monkeypatch.setenv("SECRET_KEY", same_value)
+    monkeypatch.setenv("USERNAME_HASH_SALT", same_value)
 
     with pytest.raises(ImproperlyConfigured):
         get_settings()

@@ -41,7 +41,13 @@ src = ["app", "tests"]
 select = ["E", "F", "I", "B", "UP", "S"]
 # S101 (assert) is expected and idiomatic in pytest test files.
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S101"]
+# S101 (assert) is idiomatic in pytest. S105/S106 (hardcoded-password
+# heuristics) fire on synthetic test-only constants (T-006: a known
+# plaintext password used to test login, never a real credential). S603
+# (subprocess call) fires on T-006's grep-suite smoke test, which
+# deliberately invokes `sys.executable` on a fixed, repo-relative script
+# path — not untrusted input.
+"tests/**/*.py" = ["S101", "S105", "S106", "S603"]
 
 [tool.mypy]
 python_version = "3.13"
