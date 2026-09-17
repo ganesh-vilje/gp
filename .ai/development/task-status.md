@@ -20,7 +20,7 @@ Evidence = the orchestrator's own re-run summary line (not the developer's paste
 | T-010 | M1 | done | build/M1 | 69fbde7 | unit 145 passed, integration 98 passed (3x clean rerun), ruff/mypy clean | code-reviewer, security-reviewer (2 rounds) |
 | T-010a | M1 | done | build/M1 | e0e644d | unit 168 passed, integration 98 passed (3x clean rerun), ruff/mypy clean | code-reviewer, security-reviewer (2 rounds) |
 | T-011 | M1 | done | build/M1 | e7e68b2 | tsc --noEmit clean, biome ci clean, gen:api-types diff-free, npm ci clean (0 vulnerabilities) | code-reviewer, ux-reviewer (2 rounds), security-reviewer (2 rounds) |
-| T-012 | M1 | done | build/M1 | PENDING_COMMIT | vitest 4 passed, tsc --noEmit clean, biome ci clean | code-reviewer (2 rounds), ux-reviewer (2 rounds), accessibility-reviewer (2 rounds) |
+| T-012 | M1 | done | build/M1 | 466a20e | vitest 4 passed, tsc --noEmit clean, biome ci clean | code-reviewer (2 rounds), ux-reviewer (2 rounds), accessibility-reviewer (2 rounds) |
 | T-013 | M1 | todo | | | | |
 | T-014 | M1 | todo | | | | |
 | T-016 | M1 | todo | | | | |
