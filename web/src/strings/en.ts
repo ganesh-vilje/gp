@@ -96,6 +96,43 @@ export const S = {
     sessionExpiredRedirect: "Your session has expired. Redirecting you to log in…",
     mustChangePasswordRedirect: "You must change your password before continuing. Redirecting…",
   },
+  lookup: {
+    heading: "Check complaint status",
+    inputLabel: "Complaint number",
+    checkStatus: "Check status",
+    checking: "Checking…",
+    preparing: "Preparing…",
+    retryPreparing: "Taking longer than expected. Retry",
+    unavailablePreparing: "Unavailable — reload the page",
+    cookiesDisabled:
+      "This page needs cookies enabled to check your complaint status. Please enable cookies in your browser and reload the page.",
+    inputHint: "e.g. 4T9K-M2XQ8",
+    invalidInput: "Enter a valid complaint number",
+    notFound:
+      "We couldn't find a complaint with that number. Please check the number and try again, or contact the panchayat office.",
+    rateLimited: "Too many attempts from this network. Please wait a minute and try again.",
+    rateLimitedPrefix: "Try again in ",
+    rateLimitedSuffix: "s.",
+    unavailable: "The service is temporarily unavailable. Please try again in a few minutes.",
+    successHeading: "Complaint found",
+    complaintNumberLabel: "Complaint number",
+    dateLoggedLabel: "Date logged",
+    copyComplaintNumber: "Copy complaint number",
+    copiedConfirmation: "Copied!",
+    checkAnother: "Check another complaint",
+    noscript:
+      "This page requires JavaScript to check your complaint status. Please contact the panchayat office for help.",
+    /** ADR-013/api-contract.md §4 — the fixed, enumerated citizen-facing
+     * sentence per `public_update` code. Never render the raw code or the
+     * clerk's free-text note. */
+    publicUpdateMessages: {
+      received: "We've received your complaint.",
+      in_progress: "Your complaint is being worked on.",
+      resolved: "Your complaint has been resolved.",
+      not_accepted: "Your complaint was not accepted.",
+      closed: "Your complaint is closed.",
+    },
+  },
 } as const;
 
 export type Strings = typeof S;

@@ -117,6 +117,11 @@ I want to build a small tool where a panchayat clerk logs citizen complaints and
 2026-09-17 | build (T-013) | rev 2 | security-reviewer | APPROVED | 0/0/0/3
 2026-09-17 | build (T-013) | rev 2 | accessibility-reviewer | CHANGES_REQUIRED | 0/1/1/1
 2026-09-17 | build (T-013) | rev 3 | accessibility-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-014) | rev 1 | code-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-014) | rev 1 | ux-reviewer | CHANGES_REQUIRED | 0/3/3/1
+2026-09-17 | build (T-014) | rev 1 | accessibility-reviewer | CHANGES_REQUIRED | 0/2/2/1
+2026-09-17 | build (T-014) | rev 2 | accessibility-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-014) | rev 2 | ux-reviewer | APPROVED | 0/0/0/2
 
 ## Known risks (summary — details in risks.md)
 

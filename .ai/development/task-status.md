@@ -22,7 +22,7 @@ Evidence = the orchestrator's own re-run summary line (not the developer's paste
 | T-011 | M1 | done | build/M1 | e7e68b2 | tsc --noEmit clean, biome ci clean, gen:api-types diff-free, npm ci clean (0 vulnerabilities) | code-reviewer, ux-reviewer (2 rounds), security-reviewer (2 rounds) |
 | T-012 | M1 | done | build/M1 | 466a20e | vitest 4 passed, tsc --noEmit clean, biome ci clean | code-reviewer (2 rounds), ux-reviewer (2 rounds), accessibility-reviewer (2 rounds) |
 | T-013 | M1 | done | build/M1 | c921c57 | vitest 18 passed, tsc --noEmit clean, biome ci clean | code-reviewer (2 rounds), ux-reviewer (2 rounds), accessibility-reviewer (3 rounds), security-reviewer (2 rounds) |
-| T-014 | M1 | todo | | | | |
+| T-014 | M1 | done | build/M1 | PENDING_COMMIT | vitest 21 passed, tsc --noEmit clean, biome ci clean, build 107kB First Load JS (no budget regression) | code-reviewer, ux-reviewer (2 rounds), accessibility-reviewer (2 rounds) |
 | T-016 | M1 | todo | | | | |
 | T-017 | M1 | todo | | | | |
 | T-018 | M2 | todo | | | | |
