@@ -45,6 +45,17 @@ _STRINGS: dict[str, str] = {
     "errors.forbidden": "You don't have permission to do that.",
     # T-008 — the single exception-handler set (ADR-018).
     "errors.internal_error": "Something went wrong. Please try again.",
+    # T-009 — services.complaints / db.repositories.complaint
+    # (error-catalog.md's "Public-safe message key" column).
+    "validation.client_request_id.conflict": (
+        "This request could not be completed. Please submit it again."
+    ),
+    "errors.complaint_number_generation_failed": (
+        "Could not create the complaint right now; please try again."
+    ),
+    "errors.complaint_creator_unavailable": (
+        "This complaint could not be created right now; please try again."
+    ),
 }
 
 

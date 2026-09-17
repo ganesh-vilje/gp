@@ -30,6 +30,7 @@ from app.api.exception_handlers import (
     validation_error_handler,
 )
 from app.api.routers.auth import router as auth_router
+from app.api.routers.complaints import router as complaints_router
 from app.api.routers.health import router as health_router
 from app.core.errors import DomainError
 from app.middleware.authz import AuthzMiddleware
@@ -75,6 +76,7 @@ def create_app() -> FastAPI:
 
     app.include_router(health_router)
     app.include_router(auth_router)
+    app.include_router(complaints_router)
 
     return app
 
