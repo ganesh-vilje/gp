@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "gen:api-types": "openapi-typescript ../api/openapi.json -o src/api-types.ts"
   },
   "dependencies": {
     "next": "15.5.25",
@@ -24,6 +25,7 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.1",
     "jsdom": "27.2.0",
+    "openapi-typescript": "7.13.0",
     "typescript": "5.9.3",
     "vitest": "5.0.0"
   },
