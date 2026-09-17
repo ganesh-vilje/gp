@@ -128,9 +128,7 @@ def test_create_complaint_all_fields_valid_returns_201(
     """TC-API-010."""
     with httpx.Client() as client:
         headers = _logged_in_headers(client, live_server, live_seeded_accounts)
-        response = client.post(
-            f"{live_server}/api/complaints", json=_valid_body(), headers=headers
-        )
+        response = client.post(f"{live_server}/api/complaints", json=_valid_body(), headers=headers)
 
     assert response.status_code == 201
     body = response.json()
@@ -267,12 +265,8 @@ def test_create_complaint_different_client_request_id_creates_a_new_complaint(
     creates a new complaint (api-contract.md §7)."""
     with httpx.Client() as client:
         headers = _logged_in_headers(client, live_server, live_seeded_accounts)
-        first = client.post(
-            f"{live_server}/api/complaints", json=_valid_body(), headers=headers
-        )
-        second = client.post(
-            f"{live_server}/api/complaints", json=_valid_body(), headers=headers
-        )
+        first = client.post(f"{live_server}/api/complaints", json=_valid_body(), headers=headers)
+        second = client.post(f"{live_server}/api/complaints", json=_valid_body(), headers=headers)
 
     assert first.status_code == second.status_code == 201
     assert first.json()["id"] != second.json()["id"]
@@ -331,16 +325,12 @@ def test_create_complaint_five_consecutive_number_collisions_returns_503(
         # Take the fixed number first, for real, through the normal path.
         fixed_number = "4T9KM2XQ8"
         monkeypatch.setattr(complaint_repo.complaint_number, "generate", lambda: fixed_number)
-        first = client.post(
-            f"{live_server}/api/complaints", json=_valid_body(), headers=headers
-        )
+        first = client.post(f"{live_server}/api/complaints", json=_valid_body(), headers=headers)
         assert first.status_code == 201
         assert first.json()["complaint_number"] == fixed_number
 
         # Every subsequent attempt collides on the same taken number.
-        second = client.post(
-            f"{live_server}/api/complaints", json=_valid_body(), headers=headers
-        )
+        second = client.post(f"{live_server}/api/complaints", json=_valid_body(), headers=headers)
 
     assert second.status_code == 503
     assert second.json()["error"]["code"] == "service_unavailable"
