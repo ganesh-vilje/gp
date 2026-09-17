@@ -23,8 +23,8 @@ Evidence = the orchestrator's own re-run summary line (not the developer's paste
 | T-012 | M1 | done | build/M1 | 466a20e | vitest 4 passed, tsc --noEmit clean, biome ci clean | code-reviewer (2 rounds), ux-reviewer (2 rounds), accessibility-reviewer (2 rounds) |
 | T-013 | M1 | done | build/M1 | c921c57 | vitest 18 passed, tsc --noEmit clean, biome ci clean | code-reviewer (2 rounds), ux-reviewer (2 rounds), accessibility-reviewer (3 rounds), security-reviewer (2 rounds) |
 | T-014 | M1 | done | build/M1 | b37bf84 | vitest 21 passed, tsc --noEmit clean, biome ci clean, build 107kB First Load JS (no budget regression) | code-reviewer, ux-reviewer (2 rounds), accessibility-reviewer (2 rounds) |
-| T-016 | M1 | todo | | | | |
-| T-017 | M1 | todo | | | | |
+| T-016 | M1 | todo | | | B-002 resolved 2026-09-17 (remote `origin` added) — unblocked | |
+| T-017 | M1 | blocked | | | B-003: blocked on T-016/CI existing, same root cause as B-002 | |
 | T-018 | M2 | todo | | | | |
 | T-019 | M2 | todo | | | | |
 | T-020 | M2 | todo | | | | |
