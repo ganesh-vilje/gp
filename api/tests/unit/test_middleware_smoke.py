@@ -17,6 +17,7 @@ os.environ.setdefault("DATABASE_URL", "postgresql+psycopg://x:x@localhost:5432/x
 os.environ.setdefault("SECRET_KEY", "x" * 32)
 os.environ.setdefault("USERNAME_HASH_SALT", "y" * 32)
 os.environ.setdefault("ALLOWED_ORIGINS", "https://app.example.in")
+os.environ.setdefault("ALLOWED_HOSTS", "testserver,127.0.0.1,localhost")
 
 from app.main import create_app  # noqa: E402
 

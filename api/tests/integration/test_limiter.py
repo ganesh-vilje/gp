@@ -41,6 +41,7 @@ def _limiter_engine_env(db_engine: Engine) -> Iterator[None]:
         ("SECRET_KEY", secrets.token_urlsafe(32)),
         ("USERNAME_HASH_SALT", secrets.token_urlsafe(32)),
         ("ALLOWED_ORIGINS", "https://example.test"),
+        ("ALLOWED_HOSTS", "testserver,127.0.0.1,localhost"),
     ):
         if key not in os.environ:
             os.environ[key] = value

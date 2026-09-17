@@ -79,6 +79,46 @@ def _validate_allowed_origin(origin: str, *, environment: str) -> None:
         )
 
 
+def _validate_allowed_host(host: str) -> None:
+    """F2 (T-010a security review): reject an `ALLOWED_HOSTS` entry that
+    would silently disable `TrustedHostMiddleware`'s allow-list checking.
+
+    Starlette sets `allow_any=True` (accepts every `Host`) when the literal
+    `"*"` is anywhere in the list, so `ALLOWED_HOSTS=*` must never be
+    accepted — mirrors `_validate_allowed_origin` above. Also rejects the
+    literal `null`, any entry carrying a scheme/path/port (a `Host` header
+    is a bare hostname, optionally with a port that `TrustedHostMiddleware`
+    itself strips before comparing — an allow-list entry with a scheme or
+    path is a configuration mistake, not a stricter rule), and requires a
+    leading-wildcard entry to be exactly `*.domain` (a bare `*` anywhere
+    else in the label is rejected).
+    """
+    if host in ("*", "null"):
+        raise ImproperlyConfigured(
+            f"ALLOWED_HOSTS entry {host!r} is not a valid host (fail closed): "
+            "'*' disables TrustedHostMiddleware's host checking entirely."
+        )
+    candidate = host[2:] if host.startswith("*.") else host
+    if "*" in candidate:
+        raise ImproperlyConfigured(
+            f"ALLOWED_HOSTS entry {host!r} must be a bare hostname or a "
+            "'*.domain' wildcard, not a wildcard elsewhere in the label."
+        )
+    parsed = urlsplit(f"//{host}")
+    if (
+        "://" in host
+        or parsed.path not in ("", "/")
+        or parsed.query
+        or parsed.fragment
+        or parsed.port is not None
+        or not parsed.hostname
+    ):
+        raise ImproperlyConfigured(
+            f"ALLOWED_HOSTS entry {host!r} must be a bare hostname "
+            "(no scheme, path, query, fragment, or port)."
+        )
+
+
 @dataclass(frozen=True)
 class Settings:
     # `environment` is not a secret, so it is the one field allowed in
@@ -111,6 +151,11 @@ class Settings:
     # §4/§5). Not a secret — no `repr=False`. Comma-separated in
     # `ALLOWED_ORIGINS`; at least one entry is required (fail closed).
     allowed_origins: tuple[str, ...] = field()
+    # Host allow-list for `TrustedHostMiddleware` (T-010a, ADR-007 row 1;
+    # backend-architecture.md §2). Not a secret — no `repr=False`.
+    # Comma-separated in `ALLOWED_HOSTS`; at least one entry is required
+    # (fail closed), same shape as `allowed_origins` above.
+    allowed_hosts: tuple[str, ...] = field()
 
     @property
     def docs_enabled(self) -> bool:
@@ -180,6 +225,18 @@ def get_settings() -> Settings:
             "SECRET_KEY and USERNAME_HASH_SALT must not be equal — "
             "security-architecture.md §9: 'Two separate secrets, not one.'"
         )
+    allowed_hosts_raw = os.environ.get("ALLOWED_HOSTS")
+    if not allowed_hosts_raw:
+        raise ImproperlyConfigured(
+            "ALLOWED_HOSTS must be set (comma-separated hostnames, e.g. "
+            "api.example.in) — fail closed, no default."
+        )
+    allowed_hosts = tuple(host.strip() for host in allowed_hosts_raw.split(",") if host.strip())
+    if not allowed_hosts:
+        raise ImproperlyConfigured("ALLOWED_HOSTS must contain at least one host.")
+    for host in allowed_hosts:
+        _validate_allowed_host(host)
+
     allowed_origins_raw = os.environ.get("ALLOWED_ORIGINS")
     if not allowed_origins_raw:
         raise ImproperlyConfigured(
@@ -199,4 +256,5 @@ def get_settings() -> Settings:
         secret_key=secret_key,
         username_hash_salt=username_hash_salt,
         allowed_origins=allowed_origins,
+        allowed_hosts=allowed_hosts,
     )

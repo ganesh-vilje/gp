@@ -23,6 +23,8 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
+from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.api.exception_handlers import (
     domain_error_handler,
@@ -37,6 +39,7 @@ from app.api.routers.session import router as session_router
 from app.core.errors import DomainError
 from app.middleware.authz import AuthzMiddleware
 from app.middleware.csrf import CsrfMiddleware
+from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.session_loader import SessionLoaderMiddleware
 from app.settings import get_settings
 
@@ -66,6 +69,37 @@ def create_app() -> FastAPI:
     app.add_middleware(
         SessionLoaderMiddleware,
         cookie_secure=settings.environment != "dev",
+    )
+
+    # T-010a: rows 1-3 of the ADR-007 chain, registered outermost-first in
+    # the same "innermost call registered first" pattern as above so that
+    # the *execution* order (outermost -> innermost) ends up exactly
+    # TrustedHostMiddleware -> request-ID/security-headers -> CORS ->
+    # session-loader -> CSRF -> authorization -> router (backend-
+    # architecture.md §2 rows 1-6). CORS must be registered before
+    # SecurityHeadersMiddleware and TrustedHostMiddleware (so it ends up
+    # innermost of the three) so that a CORS preflight response still gets
+    # the security headers row adds; TrustedHostMiddleware is registered
+    # last so it runs first of all six and can 400 an unrecognised `Host`
+    # before anything else — including body-size handling — ever runs.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=list(settings.allowed_origins),
+        allow_credentials=True,
+        allow_methods=["GET", "POST"],
+        allow_headers=["content-type", "x-csrf-token"],
+        max_age=600,
+    )
+    app.add_middleware(SecurityHeadersMiddleware)
+    # F3 (security review): `www_redirect` defaults to True, which can emit
+    # an absolute `http://` downgrade redirect — contradicts backend-
+    # architecture.md §2 row 0's "no redirect middleware exists, no absolute
+    # URL is ever generated". Disabled explicitly; an unrecognised Host
+    # simply gets 400, never a redirect.
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=list(settings.allowed_hosts),
+        www_redirect=False,
     )
 
     # ADR-018: exactly one exception-handler set. Starlette's handler

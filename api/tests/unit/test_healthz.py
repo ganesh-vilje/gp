@@ -16,6 +16,7 @@ os.environ.setdefault("DATABASE_URL", "postgresql+psycopg://x:x@localhost:5432/x
 os.environ.setdefault("SECRET_KEY", "x" * 32)
 os.environ.setdefault("USERNAME_HASH_SALT", "y" * 32)
 os.environ.setdefault("ALLOWED_ORIGINS", "https://app.example.in")
+os.environ.setdefault("ALLOWED_HOSTS", "testserver,127.0.0.1,localhost")
 
 import pytest  # noqa: E402
 from app.main import create_app  # noqa: E402
@@ -83,6 +84,7 @@ def _build_settings(**overrides: object) -> Settings:
         "secret_key": "s" * 32,
         "username_hash_salt": "u" * 32,
         "allowed_origins": ("http://localhost:3000",),
+        "allowed_hosts": ("localhost",),
     }
     defaults.update(overrides)
     return Settings(**defaults)  # type: ignore[arg-type]
@@ -237,6 +239,44 @@ def test_get_settings_rejects_short_username_hash_salt(monkeypatch: pytest.Monke
 
     with pytest.raises(ImproperlyConfigured):
         get_settings()
+
+
+@pytest.mark.parametrize(
+    "host",
+    [
+        "*",
+        "null",
+        "http://example.in",
+        "example.in/path",
+        "example.in?x=1",
+        "example.in#frag",
+        "example.in:8080",
+        "a*b.example.in",
+    ],
+)
+def test_get_settings_rejects_malformed_allowed_host_entries(
+    monkeypatch: pytest.MonkeyPatch, host: str
+) -> None:
+    """F2 (T-010a review): ALLOWED_HOSTS=* (or any other malformed entry)
+    must raise at settings load, fail-closed — Starlette sets
+    `allow_any=True` (accepts every Host) when '*' is anywhere in the list,
+    which would silently disable TrustedHostMiddleware entirely."""
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.setenv("ALLOWED_HOSTS", host)
+
+    with pytest.raises(ImproperlyConfigured):
+        get_settings()
+
+
+def test_get_settings_accepts_wildcard_subdomain_allowed_host(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.setenv("ALLOWED_HOSTS", "*.example.in")
+
+    settings = get_settings()
+
+    assert settings.allowed_hosts == ("*.example.in",)
 
 
 def test_get_settings_rejects_equal_secret_key_and_username_hash_salt(

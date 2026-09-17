@@ -170,10 +170,16 @@ def test_login_unknown_username_is_byte_identical_to_wrong_password(
         )
 
     assert wrong_password_response.status_code == unknown_username_response.status_code == 401
-    # No request-ID middleware yet (T-010a) — both responses' `request_id`
-    # falls back to the same fixed placeholder, so the bodies really are
-    # byte-identical, not merely equal after masking a varying field.
-    assert wrong_password_response.content == unknown_username_response.content
+    # T-010a wires the real request-ID middleware, which mints a fresh
+    # `X-Request-ID` per request — so `request_id` is the one field these
+    # two bodies are expected to differ on; mask it out before asserting
+    # everything else is byte-identical (never leak "which case" from body
+    # shape/length either, so compare the same masked structure both ways).
+    wrong_password_body = wrong_password_response.json()
+    unknown_username_body = unknown_username_response.json()
+    del wrong_password_body["error"]["request_id"]
+    del unknown_username_body["error"]["request_id"]
+    assert wrong_password_body == unknown_username_body
 
 
 # --- TC-SEC-001 ----------------------------------------------------------

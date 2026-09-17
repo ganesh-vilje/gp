@@ -62,6 +62,9 @@ _STRINGS: dict[str, str] = {
     "lookup.not_found": "We couldn't find a complaint with that number.",
     "errors.rate_limited.lookup": "Too many attempts. Please try again in a moment.",
     "errors.service_unavailable": "The service is temporarily unavailable. Please try again.",
+    # T-010a — middleware.security_headers (error-catalog.md's "Public-safe
+    # message key" column, R3-6/SEC-S8).
+    "errors.payload_too_large": "That request is too large.",
 }
 
 

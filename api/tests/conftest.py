@@ -277,8 +277,8 @@ def _live_server_set_env() -> _LiveServerEnv:
     `DATABASE_URL` is always pointed at `resolve_test_database_url()`
     (restored unconditionally in `_live_server_cleanup`, regardless of any
     ambient value — never let a live HTTP server reach `panchayat`).
-    `ENVIRONMENT`/`SECRET_KEY`/`USERNAME_HASH_SALT`/`ALLOWED_ORIGINS` are
-    set only if not already present.
+    `ENVIRONMENT`/`SECRET_KEY`/`USERNAME_HASH_SALT`/`ALLOWED_ORIGINS`/
+    `ALLOWED_HOSTS` are set only if not already present.
     """
     previous_database_url = os.environ.get("DATABASE_URL")
     os.environ["DATABASE_URL"] = resolve_test_database_url()
@@ -290,6 +290,7 @@ def _live_server_set_env() -> _LiveServerEnv:
             ("SECRET_KEY", secrets.token_urlsafe(32)),
             ("USERNAME_HASH_SALT", secrets.token_urlsafe(32)),
             ("ALLOWED_ORIGINS", "https://example.test"),
+            ("ALLOWED_HOSTS", "127.0.0.1,localhost,testserver"),
         )
         if _env_setdefault(key, value)
     ]
@@ -358,8 +359,9 @@ def live_server() -> Iterator[str]:
     value — this is the one override that is a safety property, not a
     convenience default (never let a live HTTP server started by tests
     reach the `panchayat` dev database). `ENVIRONMENT`/`SECRET_KEY`/
-    `USERNAME_HASH_SALT`/`ALLOWED_ORIGINS` are set only if not already
-    present in the environment, per this task's design constraints.
+    `USERNAME_HASH_SALT`/`ALLOWED_ORIGINS`/`ALLOWED_HOSTS` are set only if
+    not already present in the environment, per this task's design
+    constraints.
 
     `app.db.engine.get_engine()` memoises its engine at module scope inside
     `app/db/engine.py`; this fixture resets that module attribute directly
