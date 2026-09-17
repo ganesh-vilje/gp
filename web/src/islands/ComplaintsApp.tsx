@@ -265,9 +265,7 @@ function NewComplaintForm() {
         )}
         <p>
           {S.complaints.successNumberLabel}:{" "}
-          <span style={{ fontFamily: "monospace", letterSpacing: "0.1em", fontSize: "1.25rem" }}>
-            {result.complaintNumber}
-          </span>
+          <span className="complaint-number">{result.complaintNumber}</span>
         </p>
         <button type="button" onClick={handleCopyComplaintNumber}>
           {S.complaints.copyComplaintNumber}

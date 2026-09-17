@@ -122,6 +122,9 @@ I want to build a small tool where a panchayat clerk logs citizen complaints and
 2026-09-17 | build (T-014) | rev 1 | accessibility-reviewer | CHANGES_REQUIRED | 0/2/2/1
 2026-09-17 | build (T-014) | rev 2 | accessibility-reviewer | APPROVED | 0/0/0/0
 2026-09-17 | build (T-014) | rev 2 | ux-reviewer | APPROVED | 0/0/0/2
+2026-09-17 | build (T-016) | rev 1 (CI fix pass) | code-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-016) | rev 1 (CI fix pass) | security-reviewer | APPROVED | 0/0/2/0
+2026-09-17 | build (T-016) | rev 2 (F2/F3 fix) | security-reviewer | APPROVED | 0/0/0/0
 
 ## Known risks (summary — details in risks.md)
 

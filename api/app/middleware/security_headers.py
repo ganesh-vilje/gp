@@ -17,12 +17,12 @@ comment for the full outermost/innermost picture):
    the cap — handed to the downstream app by setting `request._body`
    directly (the same attribute `Request.body()` itself populates).
    `BaseHTTPMiddleware.call_next` is wired to `request.wrapped_receive`,
-   which prefers `request._body` when present and only falls back to
-   replaying raw ASGI messages via `request._receive` otherwise — a
-   `request._receive` override is NOT honored once the stream has been
-   drained (verified directly against the installed starlette's
-   `middleware/base.py`/`requests.py`), so `_body` is the only attribute
-   that reliably replays.
+   which prefers `request._body` when set (starlette's `base.py`); if
+   `_body` is unset and the stream has already been drained, it returns an
+   empty body — so `_body` is the only attribute that reliably replays a
+   drained stream to the downstream handler (verified against starlette
+   1.6.0, the currently pinned version — re-verify if that version
+   changes).
 2. **Request-ID + the fixed set of security response headers**
    (backend-architecture.md §2 row 2): mints an `X-Request-ID` if the
    client did not send one, stores it on `request.state.request_id` (every
@@ -107,16 +107,17 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
                 return _payload_too_large(request_id)
         else:
             # F1: `request.stream()` + overriding `request._receive` does NOT
-            # make `BaseHTTPMiddleware.call_next` replay the body — Starlette
-            # wires `call_next` to `request.wrapped_receive`, which (see
-            # starlette/middleware/base.py) prefers `request._body` if set,
-            # then falls back to `_stream_consumed` (an empty body) — it
-            # never re-reads `request._receive`. `Request.body()` populates
-            # `request._body`, which `wrapped_receive` DOES correctly honor,
-            # so read the length-less body via a capped incremental
-            # accumulation and set `request._body` directly (the same
-            # attribute `body()` itself would set), never touching
-            # `_receive`.
+            # reliably make `BaseHTTPMiddleware.call_next` replay the body —
+            # Starlette wires `call_next` to `request.wrapped_receive`, which
+            # (see starlette/middleware/base.py, verified against 1.6.0, the
+            # currently pinned version — re-verify if that version changes)
+            # prefers `request._body` when set; if `_body` is unset and the
+            # stream has already been drained, it returns an empty body.
+            # `Request.body()` populates `request._body`, which
+            # `wrapped_receive` DOES correctly honor, so read the
+            # length-less body via a capped incremental accumulation and set
+            # `request._body` directly (the same attribute `body()` itself
+            # would set), never touching `_receive`.
             body = bytearray()
             async for chunk in request.stream():
                 body.extend(chunk)

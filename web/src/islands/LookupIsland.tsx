@@ -297,9 +297,7 @@ export function LookupIsland() {
         <div>
           <p>
             {S.lookup.complaintNumberLabel}:{" "}
-            <span style={{ fontFamily: "monospace", letterSpacing: "0.1em", fontSize: "1.25rem" }}>
-              {result.complaintNumber}
-            </span>
+            <span className="complaint-number">{result.complaintNumber}</span>
           </p>
           <p>{result.publicUpdateMessage}</p>
           <p>
