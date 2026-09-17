@@ -58,6 +58,17 @@ def get_by_id(session: Session, complaint_id: int) -> Complaint | None:
     return session.get(Complaint, complaint_id)
 
 
+def get_by_complaint_number(session: Session, complaint_number_value: str) -> Complaint | None:
+    """Return the `complaint` row matching the canonical (normalised,
+    validated) `complaint_number_value` via `uq_complaint_number`, or
+    `None` (T-010, `POST /api/lookup`, BR-004 — exact match only). Callers
+    must have already normalised and validated the input (BR-015); this
+    function does not repeat that check."""
+    return session.scalar(
+        sa.select(Complaint).where(Complaint.complaint_number == complaint_number_value)
+    )
+
+
 def _violated_constraint_name(error: IntegrityError) -> str | None:
     """Best-effort constraint name from a psycopg 3 `IntegrityError` —
     reads `orig.diag.constraint_name` (the structured diagnostic psycopg

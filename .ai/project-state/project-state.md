@@ -90,6 +90,10 @@ I want to build a small tool where a panchayat clerk logs citizen complaints and
 2026-09-10 | plan | rev 4 | HUMAN (GATE_6) | APPROVED — "yes" + answers Q1–Q4 (see ADR-025) | phase → build
 2026-09-17 | build (T-009) | rev 1 | code-reviewer | APPROVED | 0/0/0/0
 2026-09-17 | build (T-009) | rev 1 | security-reviewer | CHANGES_REQUIRED | 0/0/3/3
+2026-09-17 | build (T-009) | rev 2 | security-reviewer | APPROVED (F7 new finding, fixed in rev 3) | 0/0/1/2
+2026-09-17 | build (T-010) | rev 1 | code-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-010) | rev 1 | security-reviewer | CHANGES_REQUIRED | 0/0/2/3
+2026-09-17 | build (T-010) | rev 2 | security-reviewer | APPROVED | 0/0/0/2
 
 ## Known risks (summary — details in risks.md)
 

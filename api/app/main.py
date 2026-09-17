@@ -32,6 +32,8 @@ from app.api.exception_handlers import (
 from app.api.routers.auth import router as auth_router
 from app.api.routers.complaints import router as complaints_router
 from app.api.routers.health import router as health_router
+from app.api.routers.lookup import router as lookup_router
+from app.api.routers.session import router as session_router
 from app.core.errors import DomainError
 from app.middleware.authz import AuthzMiddleware
 from app.middleware.csrf import CsrfMiddleware
@@ -77,6 +79,8 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(auth_router)
     app.include_router(complaints_router)
+    app.include_router(lookup_router)
+    app.include_router(session_router)
 
     return app
 

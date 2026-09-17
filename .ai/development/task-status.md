@@ -17,7 +17,7 @@ Evidence = the orchestrator's own re-run summary line (not the developer's paste
 | T-006a | M1 | done | build/M1 | 8b8cbee | integration 48 passed ×2 (live_server, query_counter, seeded accounts), unit 119 passed, ruff/format/mypy clean, test DB empty | code-reviewer (2 rounds) |
 | T-008 | M1 | done | build/M1 | 007b18a | integration 58 passed (TC-API-001..003, TC-SEC-001, ARCH-T33), unit 145 passed, ruff/format/mypy clean, grep 6/6 | code-reviewer, security-reviewer |
 | T-009 | M1 | done | build/M1 | 23847c0 | unit 145 passed, integration 78 passed (3x rerun; 1 unrelated intermittent failure per run matches blocker B-001, not a T-009 regression), ruff/mypy clean | code-reviewer, security-reviewer (2 rounds) |
-| T-010 | M1 | todo | | | | |
+| T-010 | M1 | done | build/M1 | PENDING_COMMIT | unit 145 passed, integration 98 passed (3x clean rerun), ruff/mypy clean | code-reviewer, security-reviewer (2 rounds) |
 | T-010a | M1 | todo | | | | |
 | T-011 | M1 | todo | | | | |
 | T-012 | M1 | todo | | | | |
