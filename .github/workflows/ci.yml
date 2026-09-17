@@ -62,46 +62,22 @@ jobs:
       # check is also exercised by tests/unit/test_grep_suite.py in the pytest
       # step below; these are separate named CI steps for direct visibility.
       - name: "grep-suite 1/6: datetime.now()/utcnow() outside core/clock.py"
-        run: uv run python -c "
-          from scripts import grep_suite as g;
-          v = g.check_datetime_now_outside_clock();
-          print(chr(10).join(v));
-          raise SystemExit(1 if v else 0)"
+        run: uv run python -c "from scripts import grep_suite as g; v = g.check_datetime_now_outside_clock(); print(chr(10).join(v)); raise SystemExit(1 if v else 0)"
 
       - name: "grep-suite 2/6: no PATCH/PUT/DELETE route registration"
-        run: uv run python -c "
-          from scripts import grep_suite as g;
-          v = g.check_no_patch_put_delete_routes();
-          print(chr(10).join(v));
-          raise SystemExit(1 if v else 0)"
+        run: uv run python -c "from scripts import grep_suite as g; v = g.check_no_patch_put_delete_routes(); print(chr(10).join(v)); raise SystemExit(1 if v else 0)"
 
       - name: "grep-suite 3/6: HTTPException(...) outside the exception handler"
-        run: uv run python -c "
-          from scripts import grep_suite as g;
-          v = g.check_httpexception_outside_handler();
-          print(chr(10).join(v));
-          raise SystemExit(1 if v else 0)"
+        run: uv run python -c "from scripts import grep_suite as g; v = g.check_httpexception_outside_handler(); print(chr(10).join(v)); raise SystemExit(1 if v else 0)"
 
       - name: "grep-suite 4/6: raw-SQL/raw-DBAPI bypass of the append-only guard"
-        run: uv run python -c "
-          from scripts import grep_suite as g;
-          v = g.check_raw_sql_bypass_of_append_only_guard();
-          print(chr(10).join(v));
-          raise SystemExit(1 if v else 0)"
+        run: uv run python -c "from scripts import grep_suite as g; v = g.check_raw_sql_bypass_of_append_only_guard(); print(chr(10).join(v)); raise SystemExit(1 if v else 0)"
 
       - name: "grep-suite 5/6 (web-side): dangerouslySetInnerHTML/innerHTML/eval/inline style"
-        run: uv run python -c "
-          from scripts import grep_suite as g;
-          v = g.check_web_dangerous_dom_patterns();
-          print(chr(10).join(v));
-          raise SystemExit(1 if v else 0)"
+        run: uv run python -c "from scripts import grep_suite as g; v = g.check_web_dangerous_dom_patterns(); print(chr(10).join(v)); raise SystemExit(1 if v else 0)"
 
       - name: "grep-suite 6/6 (web-side): PII in URL/history or third-party script"
-        run: uv run python -c "
-          from scripts import grep_suite as g;
-          v = g.check_web_pii_in_url_or_third_party();
-          print(chr(10).join(v));
-          raise SystemExit(1 if v else 0)"
+        run: uv run python -c "from scripts import grep_suite as g; v = g.check_web_pii_in_url_or_third_party(); print(chr(10).join(v)); raise SystemExit(1 if v else 0)"
 
       # --- Layering / import-graph test (T-005/T-006, ADR-015): a
       # hand-written AST/import-walk check, not import-linter (deliberately
