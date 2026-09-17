@@ -28,6 +28,23 @@ export const S = {
     sessionExpired: "Your session has expired.",
     unavailable: "The service is temporarily unavailable…",
   },
+  login: {
+    heading: "Log in",
+    usernameLabel: "Username",
+    passwordLabel: "Password",
+    allFieldsRequired: "All fields are required",
+    showPassword: "Show password",
+    hidePassword: "Hide password",
+    submit: "Log in",
+    submitting: "Signing in…",
+    /** Generic on purpose (R4-4 in coding-guidelines.md) — never distinguish
+     * "unknown username" from "wrong password". */
+    invalidCredentials: "Incorrect username or password.",
+    rateLimitedPrefix: "Too many attempts. Try again in ",
+    rateLimitedSuffix: "s.",
+    sessionExpiredBanner: "Your session has expired. Please log in again.",
+    checkingSession: "Checking your session…",
+  },
 } as const;
 
 export type Strings = typeof S;

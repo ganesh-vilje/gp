@@ -102,6 +102,12 @@ I want to build a small tool where a panchayat clerk logs citizen complaints and
 2026-09-17 | build (T-011) | rev 1 | security-reviewer | CHANGES_REQUIRED | 0/0/2/3
 2026-09-17 | build (T-011) | rev 2 | security-reviewer | APPROVED | 0/0/0/2
 2026-09-17 | build (T-011) | rev 2 | ux-reviewer | APPROVED (doc-comment fix applied) | 0/0/0/0
+2026-09-17 | build (T-012) | rev 1 | code-reviewer | CHANGES_REQUIRED | 0/2/0/0
+2026-09-17 | build (T-012) | rev 1 | ux-reviewer | CHANGES_REQUIRED | 0/1/1/1
+2026-09-17 | build (T-012) | rev 1 | accessibility-reviewer | CHANGES_REQUIRED | 0/1/2/2
+2026-09-17 | build (T-012) | rev 2 | accessibility-reviewer | APPROVED | 0/0/0/1
+2026-09-17 | build (T-012) | rev 2 | ux-reviewer | APPROVED | 0/0/0/1
+2026-09-17 | build (T-012) | rev 2 | code-reviewer | APPROVED | 0/0/0/0
 
 ## Known risks (summary — details in risks.md)
 
