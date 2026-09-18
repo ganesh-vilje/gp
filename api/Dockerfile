@@ -1,12 +1,9 @@
 # T-017 (infrastructure.md §3, ADR-023). Production image for the API.
 #
-# TODO: pin to a digest (FROM python:3.13-slim@sha256:<digest>) once a
-# registry lookup can be verified from an environment with network access
-# (GATE_6 Q1: no Docker/registry access on the local build machine). Track
-# via the monthly scheduled CI rebuild job (infrastructure.md §5/§11) which
-# opens a PR when the digest moves; base-image patching is the human's
-# obligation (ADR-002 Q6).
-FROM python:3.13-slim
+# Digest pinned 2026-09-18 via CI registry lookup; ADR-002 Q6 assigns
+# ONGOING patching (monthly Dependabot "docker" ecosystem bump) to the
+# human, not this initial pin.
+FROM python:3.13-slim@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
