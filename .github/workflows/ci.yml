@@ -115,6 +115,16 @@ jobs:
         working-directory: .
         run: docker build -t api-test api/
 
+      # TEMPORARY (T-017 HIGH-finding fix): one-off registry lookup to
+      # bootstrap the initial digest pin for python:3.13-slim
+      # (infrastructure.md §3). Removed once the digest is captured and
+      # hardcoded into api/Dockerfile's FROM line; ongoing bumps are
+      # Dependabot's job (ADR-002 Q6), not a permanent CI step.
+      - name: TEMP - resolve python:3.13-slim digest
+        run: |
+          docker pull python:3.13-slim
+          docker inspect --format='{{index .RepoDigests 0}}' python:3.13-slim
+
   web:
     name: web
     runs-on: ubuntu-latest
