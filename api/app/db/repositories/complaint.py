@@ -58,6 +58,31 @@ def get_by_id(session: Session, complaint_id: int) -> Complaint | None:
     return session.get(Complaint, complaint_id)
 
 
+def get_by_id_for_update(session: Session, complaint_id: int) -> Complaint | None:
+    """Return the `complaint` row with primary key `complaint_id`, locked
+    `SELECT ... FOR UPDATE`, or `None` if it does not exist (ADR-017/BR-011,
+    T-018: `services.complaints.transitions.update_status`'s row lock — a
+    second concurrent status-update transaction on the same complaint blocks
+    here until the first commits or rolls back, so it always validates the
+    transition against the first transaction's committed status, never a
+    value read before the first transaction started).
+
+    `.execution_options(populate_existing=True)` (security-review F2): without
+    it, if `complaint_id` is already in this `Session`'s identity map (e.g. a
+    caller did a plain `get_by_id`/`SELECT` earlier in the same session),
+    SQLAlchemy returns that *stale* in-memory instance's attribute values
+    instead of refreshing them from the row this query just locked — silently
+    defeating "validate against the current, post-lock status". No caller
+    does that today, but `populate_existing=True` makes the guarantee hold
+    unconditionally rather than by accident of call order."""
+    return session.scalar(
+        sa.select(Complaint)
+        .where(Complaint.id == complaint_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+
+
 def get_by_complaint_number(session: Session, complaint_number_value: str) -> Complaint | None:
     """Return the `complaint` row matching the canonical (normalised,
     validated) `complaint_number_value` via `uq_complaint_number`, or

@@ -19,31 +19,18 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.core import strings, validation
-from app.core.errors import DependencyUnavailable
+from app.core.errors import DependencyUnavailable, NotFound
 from app.db.models.complaint import Complaint
 from app.db.repositories import complaint as complaint_repo
 from app.db.repositories import user as user_repo
 from app.db.repositories.complaint import NumberGenerationExhausted
+from app.services.complaints.transitions import legal_next_statuses
 
 # FR-012/AC-008 (backend-architecture.md §9): "now() < created_at +
 # EDIT_WINDOW_DAYS checked in the service." Only the derived
 # `edit_window_expires_at` value on the create response is this task's
 # concern — the edit-details route itself (T-0xx) owns enforcing it.
 EDIT_WINDOW_DAYS = 7
-
-# BR-002 (backend-architecture.md §8): the single frozen transition map.
-# Only the "new" entry is exercised by this task (every freshly created
-# complaint starts "new") — the full map is reproduced here so the create
-# response's `legal_next_statuses` (api-contract.md §7) never drifts from
-# the status-update route's own copy of this rule once that route
-# (services/complaints/transitions.py, a later task) exists.
-_LEGAL_NEXT_STATUSES: dict[str, tuple[str, ...]] = {
-    "new": ("in_progress",),
-    "in_progress": ("resolved", "rejected"),
-    "resolved": ("closed",),
-    "rejected": ("closed",),
-    "closed": (),
-}
 
 
 @dataclass(frozen=True)
@@ -108,6 +95,17 @@ def create(
     return _result(session, complaint, duplicate=duplicate)
 
 
+def get_detail(session: Session, complaint_id: int) -> CreateComplaintResult:
+    """`GET /api/complaints/{id}` (api-contract.md #9, T-018). Raises
+    `NotFound` (404) if no such complaint exists. Reuses the same DTO shape
+    as `create()`'s result (`duplicate` is always `False` here — the field
+    is simply not read by the GET route's response builder)."""
+    complaint = complaint_repo.get_by_id(session, complaint_id)
+    if complaint is None:
+        raise NotFound(strings.get("errors.complaint_not_found"))
+    return _result(session, complaint, duplicate=False)
+
+
 def _result(session: Session, complaint: Complaint, *, duplicate: bool) -> CreateComplaintResult:
     creator = user_repo.get_by_id(session, complaint.created_by)
     if creator is None:  # pragma: no cover - defensive; FK guarantees a row exists
@@ -116,6 +114,6 @@ def _result(session: Session, complaint: Complaint, *, duplicate: bool) -> Creat
         complaint=complaint,
         duplicate=duplicate,
         created_by_username=creator.username,
-        legal_next_statuses=list(_LEGAL_NEXT_STATUSES.get(complaint.status, ())),
+        legal_next_statuses=legal_next_statuses(complaint.status),
         edit_window_expires_at=complaint.created_at + timedelta(days=EDIT_WINDOW_DAYS),
     )

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -19,6 +20,17 @@ _C0_CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
 # (component-spec.md / screen-inventory.md) so it must accept \t, \n, \r;
 # only the remaining C0 controls and DEL are rejected there.
 _C0_CONTROL_RE_MULTILINE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+
+
+def _trim_multiline_value(value: object) -> object:
+    """Shared body for every multi-line field's `mode="before"` validator
+    (`CreateComplaintRequest.description`, `UpdateStatusRequest.note`): reject
+    C0 controls/NUL/DEL other than \\t/\\n/\\r, then strip."""
+    if isinstance(value, str):
+        if _C0_CONTROL_RE_MULTILINE.search(value):
+            raise ValueError("must not contain control characters")
+        return value.strip()
+    return value
 
 
 class CreateComplaintRequest(BaseModel):
@@ -61,11 +73,7 @@ class CreateComplaintRequest(BaseModel):
         # F7 (security review, round 2): description is a multi-line
         # textarea and must accept \t/\n/\r; other C0 controls and NUL/DEL
         # are still rejected for the same reason as above.
-        if isinstance(value, str):
-            if _C0_CONTROL_RE_MULTILINE.search(value):
-                raise ValueError("must not contain control characters")
-            return value.strip()
-        return value
+        return _trim_multiline_value(value)
 
 
 class ComplaintDTO(BaseModel):
@@ -86,3 +94,47 @@ class ComplaintDTO(BaseModel):
     legal_next_statuses: list[str]
     edit_window_expires_at: datetime
     duplicate: bool
+
+
+class ComplaintDetailDTO(BaseModel):
+    """`GET /api/complaints/{id}` and `POST /api/complaints/{id}/status`
+    response (api-contract.md #9/#11) — the same fields as `ComplaintDTO`
+    minus `duplicate`, which only the create route's response carries."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: int
+    complaint_number: str
+    status: str
+    citizen_name: str
+    citizen_phone: str
+    description: str
+    created_at: datetime
+    updated_at: datetime
+    created_by: str
+    legal_next_statuses: list[str]
+    edit_window_expires_at: datetime
+
+
+class UpdateStatusRequest(BaseModel):
+    """`POST /api/complaints/{id}/status` request (api-contract.md #11,
+    BR-002/BR-011, T-018)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    new_status: Literal["in_progress", "resolved", "rejected", "closed"]
+    # api-contract.md #11: optional, <=2000 chars. F4 (security-review, T-018
+    # rework): a status-change note is written into an immutable append-only
+    # `complaint_status_history` row that can never be corrected, so — like
+    # `description` — it must reject C0 control characters (including a NUL
+    # byte) before they ever reach the database; otherwise a NUL byte makes
+    # psycopg raise at flush time, an uncatalogued 500 rather than a normal
+    # 422 invalid_input, permanently. It is multi-line like `description`
+    # (\t/\n/\r are legitimate), so it reuses the same `_trim_multiline`
+    # validator, not `_trim_single_line`.
+    note: str | None = Field(default=None, max_length=2000)
+
+    @field_validator("note", mode="before")
+    @classmethod
+    def _trim_note(cls, value: object) -> object:
+        return _trim_multiline_value(value)

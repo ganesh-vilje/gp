@@ -128,6 +128,10 @@ I want to build a small tool where a panchayat clerk logs citizen complaints and
 2026-09-18 | build (T-017) | rev 1 | code-reviewer | CHANGES_REQUIRED | 0/1/0/0
 2026-09-18 | build (T-017) | rev 1 | security-reviewer | CHANGES_REQUIRED | 0/1/3/3
 2026-09-18 | build (T-017) | rev 2 (digest pin + dockerignore + comment fixes) | security-reviewer | APPROVED | 0/0/0/1
+2026-09-18 | build (T-018) | rev 1 | code-reviewer | CHANGES_REQUIRED | 0/1/0/0
+2026-09-18 | build (T-018) | rev 1 | security-reviewer | CHANGES_REQUIRED | 0/0/4/2
+2026-09-18 | build (T-018) | rev 2 | security-reviewer | APPROVED | 0/0/0/2
+2026-09-18 | build (T-018) | rev 2 | code-reviewer | APPROVED | 0/0/0/0
 
 ## Known risks (summary — details in risks.md)
 

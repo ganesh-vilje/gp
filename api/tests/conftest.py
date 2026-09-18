@@ -71,32 +71,41 @@ def resolve_test_database_url() -> str:
     `TEST_DATABASE_URL` always wins when set. Absent that, the local literal
     default is used **only** when `ENVIRONMENT` is unset, `"test"`, or
     `"dev"` — an unexpected `ENVIRONMENT` (e.g. `"staging"`/`"prod"`) never
-    silently falls back to a guessed database. As a second belt-and-braces
-    check, refuse outright if the resolved database is literally
-    `panchayat` (the dev database, per project-config.md `db_start`) —
-    integration tests must run against `panchayat_test` only.
+    silently falls back to a guessed database.
+
+    F3 (security-review, T-018 rework): the `ENVIRONMENT` check now applies
+    to *both* the explicit-`TEST_DATABASE_URL` path and the derived-default
+    path — an explicit `TEST_DATABASE_URL` no longer skips it — and,
+    regardless of which path produced `url`, the resolved database name must
+    be `panchayat_test` (or otherwise end with `_test`) or this raises. This
+    module's fixtures use `Connection.exec_driver_sql` to `DELETE` from the
+    three append-only tables for test teardown (a documented, test-only
+    bypass of `app/db/guard.py`); both checks together are the only thing
+    standing between that bypass and a real (non-`_test`) database, so a
+    failure here must always raise loudly, never proceed.
 
     Pure/no I/O: safe to call at collection time.
     """
+    environment = os.environ.get("ENVIRONMENT")
+    if environment not in (None, "", "test", "dev"):
+        raise RuntimeError(
+            "Refusing to resolve a test database URL: ENVIRONMENT="
+            f"{environment!r} is not one that may run integration tests "
+            "(expected unset, 'test', or 'dev') — this check applies "
+            "whether or not TEST_DATABASE_URL is set explicitly."
+        )
+
     explicit = os.environ.get("TEST_DATABASE_URL")
-    if explicit:
-        url = explicit
-    else:
-        environment = os.environ.get("ENVIRONMENT")
-        if environment not in (None, "", "test", "dev"):
-            raise RuntimeError(
-                "TEST_DATABASE_URL is not set and ENVIRONMENT="
-                f"{environment!r} is not one that may fall back to the local "
-                "default test database — set TEST_DATABASE_URL explicitly."
-            )
-        url = _DEFAULT_TEST_DATABASE_URL
+    url = explicit if explicit else _DEFAULT_TEST_DATABASE_URL
 
     database_name = make_url(url).database
-    if database_name == "panchayat":
+    if database_name != "panchayat_test" and not (database_name or "").endswith("_test"):
         raise RuntimeError(
-            "Refusing to run integration tests against the 'panchayat' dev "
-            "database — TEST_DATABASE_URL (or the default) must point at "
-            "'panchayat_test'."
+            "Refusing to run integration tests against database "
+            f"{database_name!r} — TEST_DATABASE_URL (or the default) must "
+            "resolve to 'panchayat_test' or another name ending in '_test'. "
+            "This guards the test-only append-only-table DELETE bypass in "
+            "this file from ever running against a real database."
         )
     return url
 
@@ -246,8 +255,25 @@ def make_session(
 # .user_id` is `ondelete="CASCADE"` but is deleted explicitly anyway for
 # clarity). The three append-only tables (`complaint_status_history`,
 # `complaint_edit_history`, `security_event`) are never listed here — the
-# guard registered on `db_engine` would raise (BR-008).
+# guard registered on `db_engine` would raise (BR-008) — they are cleared
+# separately, below, via a documented bypass.
 _TRUNCATE_ORDER: tuple[str, ...] = ("session", "complaint", "rate_limit_counter", "clerk_account")
+
+# The three append-only tables, child-before-parent order (both history
+# tables reference `complaint`/`clerk_account` with `ondelete="RESTRICT"`,
+# so they must be cleared before `_TRUNCATE_ORDER`'s `complaint`/
+# `clerk_account` rows, or that DELETE fails on the FK). Cleared via
+# `Connection.exec_driver_sql` (T-018), the one documented, test-only
+# bypass of `app/db/guard.py`'s `before_execute` hook (its own docstring:
+# "What this runtime guard does NOT cover") — legitimate here only because
+# this is test-isolation cleanup, not application code (the static
+# `tests/unit/test_no_raw_sql_bypass.py` check that forbids this pattern is
+# scoped to `app/`, not `tests/`).
+_APPEND_ONLY_TRUNCATE_ORDER: tuple[str, ...] = (
+    "complaint_status_history",
+    "complaint_edit_history",
+    "security_event",
+)
 
 
 def _env_setdefault(key: str, value: str) -> bool:
@@ -453,6 +479,11 @@ def truncate_tables(db_engine: Engine) -> Iterator[Callable[[], None]]:
 
     def _truncate() -> None:
         with db_engine.begin() as connection:
+            for table in _APPEND_ONLY_TRUNCATE_ORDER:
+                # exec_driver_sql bypasses app/db/guard.py's before_execute
+                # hook (see _APPEND_ONLY_TRUNCATE_ORDER's comment) — this is
+                # test-isolation cleanup, never application code.
+                connection.exec_driver_sql(f"DELETE FROM {table}")  # noqa: S608 - fixed table names
             for table in _TRUNCATE_ORDER:
                 connection.execute(text(f"DELETE FROM {table}"))  # noqa: S608 - fixed table names
 

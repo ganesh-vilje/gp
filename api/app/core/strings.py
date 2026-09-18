@@ -56,6 +56,10 @@ _STRINGS: dict[str, str] = {
     "errors.complaint_creator_unavailable": (
         "This complaint could not be created right now; please try again."
     ),
+    # T-018 — services.complaints.transitions / api.routers.complaints
+    # (error-catalog.md's "Public-safe message key" column).
+    "errors.complaint_not_found": "We couldn't find that complaint.",
+    "errors.illegal_transition": "That status change isn't allowed from the current status.",
     # T-010 — services.lookup / api.routers.lookup (error-catalog.md's
     # "Public-safe message key" column).
     "lookup.invalid_format": "Enter a valid complaint number.",
