@@ -1,0 +1,14 @@
+Alembic migrations for panchayat-complaint-tracker.
+
+- Run from `api/` with `DATABASE_URL` set in the environment, e.g.:
+  `DATABASE_URL=postgresql+psycopg://panchayat:panchayat@localhost:5432/panchayat uv run alembic upgrade head`
+- Local Postgres is 16; production and CI are 17 — avoid 17-only syntax.
+- Migrations are hand-written from `.ai/database/schema.md`'s compact DDL, never
+  blindly trusted from `alembic revision --autogenerate` — see
+  coding-guidelines.md § Migrations.
+- `alembic check` (drift gate) only becomes meaningful once `app.db.models`
+  exists (T-004); until then `env.py`'s `target_metadata` is `None`.
+- Append-only enforcement (`complaint_status_history`, `complaint_edit_history`,
+  `security_event`) is the application-level guard in `app/db/guard.py`
+  (T-004); DB-level `REVOKE` hardening is a later, dedicated migration
+  (TD-B04) once a second, non-owning application role is provisioned.

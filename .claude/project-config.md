@@ -3,6 +3,7 @@
 # rev 2 (2026-09-10) /plan rework: start: binds literal 8080 [A-F4], run_dev adds --no-proxy-headers
 # [A-F12], added db_start [A-F13] and openapi_dump [A-F13].
 # GATE_6 (2026-09-10): db_start -> locally installed PostgreSQL 17 (no Docker), uv pin 0.10.8, toolchain line added.
+# rev 4 (2026-09-10, /implement T-001): run_dev needs ENVIRONMENT=dev (fail-closed settings); port-8000 note.
 # rev 3 (2026-09-10): local PostgreSQL is 16 (not 17); production/CI stay on 17. Local role + databases already exist.
 # Two stacks: API (Python) and web (TypeScript). Paths marked <…> are set in /plan.
 
@@ -11,7 +12,7 @@ package_manager: uv (API, committed uv.lock)
 package_manager_web: npm (Node 22 LTS pinned in .nvmrc, committed package-lock.json)
 install: uv sync --frozen
 install_web: npm ci --ignore-scripts
-run_dev: uv run uvicorn app.main:app --reload --port 8000 --no-proxy-headers   # [rework A-F12] uvicorn's own --proxy-headers defaults on; --no-proxy-headers keeps dev's scope["client"] behaviour in parity with the production app.worker.RawPeerWorker (ADR-023); parity re-verified at task T-025
+run_dev: uv run uvicorn app.main:app --reload --port 8000 --no-proxy-headers   # requires ENVIRONMENT=dev in the shell — settings fail CLOSED when ENVIRONMENT is unset/invalid (T-001 security review F1); PowerShell: $env:ENVIRONMENT="dev"; then run. NOTE: port 8000 was held by two unrelated python.exe processes on the build machine on 2026-09-10 — use --port 8001 if it is still busy. [rework A-F12] uvicorn's own --proxy-headers defaults on; --no-proxy-headers keeps dev's scope["client"] behaviour in parity with the production app.worker.RawPeerWorker (ADR-023); parity re-verified at task T-025
 run_dev_web: npm run dev   # Next.js dev server on port 3000; NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 db_start: none — locally installed PostgreSQL **16** service at C:\Program Files\PostgreSQL\16\bin (GATE_6 Q1: Docker is NOT installed on the build machine). Local role panchayat / password panchayat and databases panchayat and panchayat_test ALREADY EXIST — do not re-create them. DATABASE_URL=postgresql+psycopg://panchayat:panchayat@localhost:5432/panchayat (tests: .../panchayat_test). Production (Fly Managed Postgres) and CI (T-016 service container) stay on PostgreSQL 17 — avoid PostgreSQL 17-only SQL features, since they cannot be verified locally. infrastructure.md §4's "Docker" wording is superseded by this line.
 toolchain: build machine has Python 3.11.9 (uv installs 3.13 for the project via .python-version — never the system interpreter), Node 22.21.0, uv 0.10.8, PostgreSQL 16 (psql/pg_dump at C:\Program Files\PostgreSQL\16\bin — add to PATH or call by full path), no Docker (GATE_6 Q1). Docker-based checks (T-017/T-043 image build, M5 demo step 1) run in CI, not locally.

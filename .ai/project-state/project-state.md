@@ -28,7 +28,7 @@ I want to build a small tool where a panchayat clerk logs citizen complaints and
 | ux              | approved    | .ai/ux/, .ai/design/     | GATE_4 2026-09-09, rev 3 |
 | architecture    | approved    | .ai/architecture/, .ai/security/, .ai/database/, .ai/api/ | GATE_3+GATE_5 2026-09-10, rev 4 (3 rework loops) |
 | plan            | approved    | .ai/development/, .ai/testing/ | GATE_6 2026-09-10, rev 4 (3 rework loops) |
-| build           | in_progress | (application code)       | branch per milestone build/M1..M5, human merges to master |
+| build           | M1 complete | (application code)       | M1 done 2026-09-18 (17/17 tasks) + 2 live-testing bug fixes (TD-B23); branch per milestone build/M1..M5, human merges to master |
 | qa              | pending     | .ai/testing/, .ai/qa/    |       |
 | release         | pending     | .ai/release/             |       |
 
@@ -88,6 +88,46 @@ I want to build a small tool where a panchayat clerk logs citizen complaints and
 2026-09-10 | plan | rev 3 | test-architect (review) | CHANGES_REQUIRED | 0/0/1/1
 2026-09-10 | plan | rev 4 | test-architect (review) | APPROVED | 0/0/0/0
 2026-09-10 | plan | rev 4 | HUMAN (GATE_6) | APPROVED — "yes" + answers Q1–Q4 (see ADR-025) | phase → build
+2026-09-17 | build (T-009) | rev 1 | code-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-009) | rev 1 | security-reviewer | CHANGES_REQUIRED | 0/0/3/3
+2026-09-17 | build (T-009) | rev 2 | security-reviewer | APPROVED (F7 new finding, fixed in rev 3) | 0/0/1/2
+2026-09-17 | build (T-010) | rev 1 | code-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-010) | rev 1 | security-reviewer | CHANGES_REQUIRED | 0/0/2/3
+2026-09-17 | build (T-010) | rev 2 | security-reviewer | APPROVED | 0/0/0/2
+2026-09-17 | build (T-010a) | rev 1 | code-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-010a) | rev 1 | security-reviewer | CHANGES_REQUIRED | 0/2/6/4
+2026-09-17 | build (T-010a) | rev 2 | security-reviewer | APPROVED | 0/0/0/4
+2026-09-17 | build (T-011) | rev 1 | code-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-011) | rev 1 | ux-reviewer | CHANGES_REQUIRED (revised after clarification) | 0/0/1/0
+2026-09-17 | build (T-011) | rev 1 | security-reviewer | CHANGES_REQUIRED | 0/0/2/3
+2026-09-17 | build (T-011) | rev 2 | security-reviewer | APPROVED | 0/0/0/2
+2026-09-17 | build (T-011) | rev 2 | ux-reviewer | APPROVED (doc-comment fix applied) | 0/0/0/0
+2026-09-17 | build (T-012) | rev 1 | code-reviewer | CHANGES_REQUIRED | 0/2/0/0
+2026-09-17 | build (T-012) | rev 1 | ux-reviewer | CHANGES_REQUIRED | 0/1/1/1
+2026-09-17 | build (T-012) | rev 1 | accessibility-reviewer | CHANGES_REQUIRED | 0/1/2/2
+2026-09-17 | build (T-012) | rev 2 | accessibility-reviewer | APPROVED | 0/0/0/1
+2026-09-17 | build (T-012) | rev 2 | ux-reviewer | APPROVED | 0/0/0/1
+2026-09-17 | build (T-012) | rev 2 | code-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-013) | rev 1 | code-reviewer | APPROVED | 0/0/1/0
+2026-09-17 | build (T-013) | rev 1 | ux-reviewer | CHANGES_REQUIRED | 0/2/2/0
+2026-09-17 | build (T-013) | rev 1 | accessibility-reviewer | CHANGES_REQUIRED | 0/1/0/1
+2026-09-17 | build (T-013) | rev 1 | security-reviewer | APPROVED | 0/0/1/2
+2026-09-17 | build (T-013) | rev 2 | code-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-013) | rev 2 | ux-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-013) | rev 2 | security-reviewer | APPROVED | 0/0/0/3
+2026-09-17 | build (T-013) | rev 2 | accessibility-reviewer | CHANGES_REQUIRED | 0/1/1/1
+2026-09-17 | build (T-013) | rev 3 | accessibility-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-014) | rev 1 | code-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-014) | rev 1 | ux-reviewer | CHANGES_REQUIRED | 0/3/3/1
+2026-09-17 | build (T-014) | rev 1 | accessibility-reviewer | CHANGES_REQUIRED | 0/2/2/1
+2026-09-17 | build (T-014) | rev 2 | accessibility-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-014) | rev 2 | ux-reviewer | APPROVED | 0/0/0/2
+2026-09-17 | build (T-016) | rev 1 (CI fix pass) | code-reviewer | APPROVED | 0/0/0/0
+2026-09-17 | build (T-016) | rev 1 (CI fix pass) | security-reviewer | APPROVED | 0/0/2/0
+2026-09-17 | build (T-016) | rev 2 (F2/F3 fix) | security-reviewer | APPROVED | 0/0/0/0
+2026-09-18 | build (T-017) | rev 1 | code-reviewer | CHANGES_REQUIRED | 0/1/0/0
+2026-09-18 | build (T-017) | rev 1 | security-reviewer | CHANGES_REQUIRED | 0/1/3/3
+2026-09-18 | build (T-017) | rev 2 (digest pin + dockerignore + comment fixes) | security-reviewer | APPROVED | 0/0/0/1
 
 ## Known risks (summary — details in risks.md)
 

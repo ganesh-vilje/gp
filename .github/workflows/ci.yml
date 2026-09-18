@@ -1,0 +1,167 @@
+name: CI
+
+# T-016 (infrastructure.md §5, ADR-010), extended by T-017 with the
+# image build step below. Deploy, the OpenAPI-dump /
+# openapi-typescript diff check, `selfcheck`, and the E2E job are later tasks
+# (T-042/T-043) — not duplicated here.
+#
+# Hardening (infra.md §5): all third-party actions SHA-pinned; read-only
+# token permissions; no `pull_request_target`; no secrets used by either job.
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    name: api
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: panchayat
+          POSTGRES_PASSWORD: panchayat
+          POSTGRES_DB: panchayat_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U panchayat -d panchayat_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@f98e06938123ccabd21905ea5d0069192241f9f1 # v8.3.1
+        with:
+          version: "0.10.8"
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Lint (ruff)
+        run: uv run ruff check .
+
+      - name: Format check (ruff format)
+        run: uv run ruff format --check .
+
+      - name: Typecheck (mypy)
+        run: uv run mypy app
+
+      # --- CI grep suite: six named forbidden-pattern steps (coding-guidelines.md
+      # § Module size and forbidden patterns; scripts/grep_suite.py, T-006). Each
+      # check is also exercised by tests/unit/test_grep_suite.py in the pytest
+      # step below; these are separate named CI steps for direct visibility.
+      - name: "grep-suite 1/6: datetime.now()/utcnow() outside core/clock.py"
+        run: uv run python -c "from scripts import grep_suite as g; v = g.check_datetime_now_outside_clock(); print(chr(10).join(v)); raise SystemExit(1 if v else 0)"
+
+      - name: "grep-suite 2/6: no PATCH/PUT/DELETE route registration"
+        run: uv run python -c "from scripts import grep_suite as g; v = g.check_no_patch_put_delete_routes(); print(chr(10).join(v)); raise SystemExit(1 if v else 0)"
+
+      - name: "grep-suite 3/6: HTTPException(...) outside the exception handler"
+        run: uv run python -c "from scripts import grep_suite as g; v = g.check_httpexception_outside_handler(); print(chr(10).join(v)); raise SystemExit(1 if v else 0)"
+
+      - name: "grep-suite 4/6: raw-SQL/raw-DBAPI bypass of the append-only guard"
+        run: uv run python -c "from scripts import grep_suite as g; v = g.check_raw_sql_bypass_of_append_only_guard(); print(chr(10).join(v)); raise SystemExit(1 if v else 0)"
+
+      - name: "grep-suite 5/6 (web-side): dangerouslySetInnerHTML/innerHTML/eval/inline style"
+        run: uv run python -c "from scripts import grep_suite as g; v = g.check_web_dangerous_dom_patterns(); print(chr(10).join(v)); raise SystemExit(1 if v else 0)"
+
+      - name: "grep-suite 6/6 (web-side): PII in URL/history or third-party script"
+        run: uv run python -c "from scripts import grep_suite as g; v = g.check_web_pii_in_url_or_third_party(); print(chr(10).join(v)); raise SystemExit(1 if v else 0)"
+
+      # --- Layering / import-graph test (T-005/T-006, ADR-015): a
+      # hand-written AST/import-walk check, not import-linter (deliberately
+      # not adopted — dependency-strategy.md). Named separately per the
+      # T-016 task row even though it is also part of the unit suite below.
+      - name: Layering import-graph check
+        run: uv run pytest tests/unit/test_layering.py -v
+
+      - name: Unit tests
+        run: uv run pytest -m "not e2e and not integration"
+
+      - name: Integration tests (Postgres)
+        run: uv run pytest -m integration
+
+      - name: Alembic upgrade head
+        env:
+          DATABASE_URL: postgresql+psycopg://panchayat:panchayat@localhost:5432/panchayat_test
+        run: uv run alembic upgrade head
+
+      - name: Alembic check (drift)
+        env:
+          DATABASE_URL: postgresql+psycopg://panchayat:panchayat@localhost:5432/panchayat_test
+        run: uv run alembic check
+
+      - name: pip-audit
+        run: uv run pip-audit
+
+      # T-017 (infrastructure.md §3): build the production image with the
+      # Docker CLI already preinstalled on ubuntu-latest runners (no
+      # third-party action needed, nothing to SHA-pin). The base image is
+      # digest-pinned (see api/Dockerfile); this step only proves the
+      # image builds successfully and that the `uv sync --frozen --no-dev`
+      # production-only install succeeds. `docker build` never runs `USER`
+      # or `CMD`, so runtime proof of the non-root user and the gunicorn
+      # worker class actually working is deferred to SEC-T21 / T-025.
+      - name: Build API image (docker)
+        working-directory: .
+        run: docker build -t api-test api/
+
+  web:
+    name: web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: web/.nvmrc
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Lint (biome)
+        run: npx biome ci .
+
+      - name: Format check (biome)
+        run: npx biome format .
+
+      - name: Typecheck (tsc)
+        run: npx tsc --noEmit
+
+      - name: Unit tests (vitest)
+        run: npm run test
+
+      - name: Build (next build)
+        run: npm run build | tee build-output.txt
+
+      # Byte-budget STUB only (informational at this task): the ≤120KB
+      # gzipped first-load-JS hard gate on `/` is T-042's job
+      # (frontend-architecture.md §8, milestones.md). This step parses
+      # `next build`'s own route-size table for visibility in every CI run
+      # from here on, and fails only if the table cannot be parsed at all
+      # (a build-output-format regression) — it must not be read as the
+      # enforced gate.
+      - name: Byte-budget stub (informational; hard gate lands in T-042)
+        run: node scripts/byte-budget-stub.mjs build-output.txt
+
+      - name: npm audit (high/critical)
+        run: npm audit --audit-level=high
+
+      - name: npm audit signatures
+        run: npm audit signatures
