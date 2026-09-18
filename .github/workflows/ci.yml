@@ -1,9 +1,9 @@
 name: CI
 
-# T-016 (infrastructure.md §5, ADR-010). Scope for this task: the api job and
-# the web job only. Deploy, the digest-pinned image build, the OpenAPI-dump /
+# T-016 (infrastructure.md §5, ADR-010), extended by T-017 with the
+# digest-pinned image build step below. Deploy, the OpenAPI-dump /
 # openapi-typescript diff check, `selfcheck`, and the E2E job are later tasks
-# (T-017/T-042/T-043) — not duplicated here.
+# (T-042/T-043) — not duplicated here.
 #
 # Hardening (infra.md §5): all third-party actions SHA-pinned; read-only
 # token permissions; no `pull_request_target`; no secrets used by either job.
@@ -104,6 +104,16 @@ jobs:
 
       - name: pip-audit
         run: uv run pip-audit
+
+      # T-017 (infrastructure.md §3): build the production image with the
+      # Docker CLI already preinstalled on ubuntu-latest runners (no
+      # third-party action needed, nothing to SHA-pin). Digest pinning of
+      # the base image is a follow-up (see Dockerfile TODO); this step
+      # still proves the build, non-root user and `uv sync --frozen
+      # --no-dev` production-only install all work.
+      - name: Build API image (docker)
+        working-directory: .
+        run: docker build -t api-test api/
 
   web:
     name: web
