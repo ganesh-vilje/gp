@@ -113,9 +113,11 @@ def update_status(
         created_at=now,
     )
 
-    # Not committed here — `app.db.session.get_session()` commits once after
-    # the route handler returns successfully (same pattern as
-    # `services.complaints.create`).
+    # Not committed here — a service never owns the request's transaction
+    # boundary. B-001: the caller (`app.api.routers.complaints.
+    # update_complaint_status`) now commits explicitly before building its
+    # response, same reasoning as `services.complaints.create` (see
+    # `app.db.session`'s docstring, "B-001 root cause note").
     session.flush()
 
     actor = user_repo.get_by_id(session, actor_id)

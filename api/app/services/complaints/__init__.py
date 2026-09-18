@@ -88,10 +88,13 @@ def create(
             strings.get("errors.complaint_number_generation_failed")
         ) from exc
 
-    # Not committed here — `app.db.session.get_session()` (this session's
-    # owner) commits once after the route handler returns successfully,
-    # exactly like `services.auth.login` (T-006/T-008's established
-    # pattern): a service never owns the request's transaction boundary.
+    # Not committed here — a service never owns the request's transaction
+    # boundary. B-001: the caller (`app.api.routers.complaints.
+    # create_complaint`) now commits explicitly before building its
+    # response — `app.db.session.get_session()`'s own post-yield commit
+    # runs *after* the response has already been sent to the client on this
+    # FastAPI version, so it cannot be the synchronization point a route
+    # relies on (see that module's docstring, "B-001 root cause note").
     return _result(session, complaint, duplicate=duplicate)
 
 

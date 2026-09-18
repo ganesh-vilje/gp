@@ -56,7 +56,7 @@ def create_complaint(
     response.status_code = 200 if result.duplicate else 201
 
     complaint = result.complaint
-    return ComplaintDTO(
+    body_out = ComplaintDTO(
         id=complaint.id,
         complaint_number=complaint.complaint_number,
         status=complaint.status,
@@ -70,6 +70,16 @@ def create_complaint(
         edit_window_expires_at=result.edit_window_expires_at,
         duplicate=result.duplicate,
     )
+
+    # B-001: commit here, before the response is sent — see
+    # `app/db/session.py`'s docstring ("B-001 root cause note"). A client
+    # may act on this response (e.g. immediately fetch the new complaint)
+    # before `get_session()`'s own post-yield commit has even run. Committed
+    # last (security review F1) so nothing after this line can turn an
+    # already-durable write into an error response.
+    session.commit()
+
+    return body_out
 
 
 def _detail_dto(
@@ -124,10 +134,19 @@ def update_complaint_status(
         actor_id=user.id,
     )
     complaint = result.complaint
-    return _detail_dto(
+    body_out = _detail_dto(
         complaint,
         created_by=result.updated_by_username,
         legal_next_statuses=result.legal_next_statuses,
         edit_window_expires_at=complaint.created_at
         + timedelta(days=complaints_service.EDIT_WINDOW_DAYS),
     )
+
+    # B-001: same reasoning as `create_complaint` above. Committed last
+    # (security review F1) — this route has no idempotency key, so a 500
+    # after an earlier commit would otherwise turn an already-committed
+    # transition into a confusing client-side retry (422 illegal_transition
+    # on the next attempt, since the transition already happened).
+    session.commit()
+
+    return body_out

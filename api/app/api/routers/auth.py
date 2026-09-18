@@ -100,9 +100,11 @@ def login(
         # above — a `None` here would mean it vanished mid-request.
         raise DependencyUnavailable("Could not read back the session just created.")
 
-    _set_session_cookie(response, raw_token=raw_token, environment=settings.environment)
-
-    return LoginResponse(
+    # Build everything the response needs BEFORE committing, so the commit
+    # (see below) is the last thing this handler does that can raise —
+    # nothing after it can turn an already-durable write into an error
+    # response (security review F1, B-001 rework).
+    body_out = LoginResponse(
         user=UserDTO(
             id=user.id,
             username=user.username,
@@ -111,6 +113,18 @@ def login(
         ),
         csrf_token=csrf_token,
     )
+    _set_session_cookie(response, raw_token=raw_token, environment=settings.environment)
+
+    # B-001: commit here, before the response is sent — never rely on
+    # `app.db.session.get_session()`'s own post-yield commit for this,
+    # since (this FastAPI version) that runs *after* the response has
+    # already been sent to the client (see that module's docstring). The
+    # client is handed this session's cookie in this same response, so the
+    # row must be durable before the response leaves the server, or an
+    # immediately-following request can find no session row yet.
+    session.commit()
+
+    return body_out
 
 
 @router.post("/logout", response_model=LogoutResponse)
@@ -139,5 +153,12 @@ def logout(
         _set_anon_seed_cookie(response, seed=seed)
 
     csrf_token = compute_anonymous_csrf_token(settings.secret_key, seed)
+    body_out = LogoutResponse(csrf_token=csrf_token)
 
-    return LogoutResponse(csrf_token=csrf_token)
+    # B-001: same reasoning as `login` above — the revoke must be durable
+    # before this response (which tells the client it is now anonymous)
+    # reaches it. Committed last (security review F1) so nothing after
+    # this line can turn an already-durable revoke into an error response.
+    session.commit()
+
+    return body_out
