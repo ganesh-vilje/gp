@@ -65,6 +65,12 @@ warn_unused_ignores = true
 show_error_codes = true
 files = ["app"]
 
+[[tool.mypy.overrides]]
+# uvicorn_worker ships no py.typed marker / stubs (T-017: app/worker.py is
+# the only consumer, a thin gunicorn worker-class skeleton per ADR-023).
+module = "uvicorn_worker"
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [

@@ -19,7 +19,7 @@ off so ``scope["client"][0]`` is always the raw TCP peer, which
 from uvicorn_worker import UvicornWorker
 
 
-class RawPeerWorker(UvicornWorker):
+class RawPeerWorker(UvicornWorker):  # type: ignore[misc]
     """UvicornWorker with proxy-header trust disabled at the ASGI layer."""
 
     CONFIG_KWARGS = {"proxy_headers": False, "forwarded_allow_ips": []}
