@@ -61,12 +61,16 @@ def _clear_session_cookie(response: Response, *, environment: str) -> None:
     )
 
 
-def _set_anon_seed_cookie(response: Response, *, seed: str, environment: str) -> None:
+def _set_anon_seed_cookie(response: Response, *, seed: str) -> None:
+    # The __Host- prefix REQUIRES Secure on every environment, including dev
+    # (localhost is treated as a secure context by browsers, but the Secure
+    # attribute itself must still be present on the Set-Cookie header or the
+    # browser silently drops the cookie entirely, breaking CSRF everywhere).
     response.set_cookie(
         ANON_SEED_COOKIE,
         seed,
         httponly=True,
-        secure=environment != "dev",
+        secure=True,
         samesite="lax",
         path="/",
     )
@@ -132,7 +136,7 @@ def logout(
     seed = request.cookies.get(ANON_SEED_COOKIE)
     if not seed:
         seed = secrets.token_urlsafe(32)
-        _set_anon_seed_cookie(response, seed=seed, environment=settings.environment)
+        _set_anon_seed_cookie(response, seed=seed)
 
     csrf_token = compute_anonymous_csrf_token(settings.secret_key, seed)
 

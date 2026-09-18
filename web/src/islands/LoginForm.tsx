@@ -53,6 +53,7 @@ export function LoginForm() {
     apiGet("/api/session")
       .then((response) => {
         if (cancelled) return;
+        setCsrfToken(response.csrf_token);
         if (response.authenticated) {
           setSessionCheck("redirecting");
           router.replace("/complaints");
