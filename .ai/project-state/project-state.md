@@ -28,7 +28,7 @@ I want to build a small tool where a panchayat clerk logs citizen complaints and
 | ux              | approved    | .ai/ux/, .ai/design/     | GATE_4 2026-09-09, rev 3 |
 | architecture    | approved    | .ai/architecture/, .ai/security/, .ai/database/, .ai/api/ | GATE_3+GATE_5 2026-09-10, rev 4 (3 rework loops) |
 | plan            | approved    | .ai/development/, .ai/testing/ | GATE_6 2026-09-10, rev 4 (3 rework loops) |
-| build           | in_progress | (application code)       | branch per milestone build/M1..M5, human merges to master |
+| build           | M1 complete | (application code)       | M1 done 2026-09-18 (17/17 tasks); branch per milestone build/M1..M5, human merges to master |
 | qa              | pending     | .ai/testing/, .ai/qa/    |       |
 | release         | pending     | .ai/release/             |       |
 
