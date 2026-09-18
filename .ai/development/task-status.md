@@ -24,7 +24,7 @@ Evidence = the orchestrator's own re-run summary line (not the developer's paste
 | T-013 | M1 | done | build/M1 | c921c57 | vitest 18 passed, tsc --noEmit clean, biome ci clean | code-reviewer (2 rounds), ux-reviewer (2 rounds), accessibility-reviewer (3 rounds), security-reviewer (2 rounds) |
 | T-014 | M1 | done | build/M1 | b37bf84 | vitest 21 passed, tsc --noEmit clean, biome ci clean, build 107kB First Load JS (no budget regression) | code-reviewer, ux-reviewer (2 rounds), accessibility-reviewer (2 rounds) |
 | T-016 | M1 | done | build/M1 | 95fab1e | Green CI run on PR #1: https://github.com/ganesh-vilje/gp/actions/runs/35233692188 (api + web jobs both success). One earlier attempt hit blocker B-001's known intermittent auth race (1/98 integration tests, unrelated to this PR) — re-run came back clean. pip-audit 0 vulns, ruff/mypy/biome/tsc clean | code-reviewer, security-reviewer (2 rounds) |
-| T-017 | M1 | blocked | | | B-003: blocked on T-016/CI existing, same root cause as B-002 | |
+| T-017 | M1 | done | build/M1 | c86be66 | `docker build -t api-test api/` exits 0 in CI with digest-pinned base image: https://github.com/ganesh-vilje/gp/actions/runs/35312544912 (api + web jobs both success). Base image digest resolved via a one-off CI lookup and hardcoded into api/Dockerfile per code review. Blocker B-001's intermittent auth race hit this PR's CI 5 separate times across T-016/T-017 (unrelated integration tests, always clears on rerun) — recommend fixing it before further work | code-reviewer, security-reviewer (2 rounds) |
 | T-018 | M2 | todo | | | | |
 | T-019 | M2 | todo | | | | |
 | T-020 | M2 | todo | | | | |
