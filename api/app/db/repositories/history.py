@@ -18,6 +18,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
+from app.db.models.complaint_edit_history import ComplaintEditHistory
 from app.db.models.complaint_status_history import ComplaintStatusHistory
 
 
@@ -40,6 +41,33 @@ def insert_status_change(
         previous_status=previous_status,
         new_status=new_status,
         note=note,
+        actor_id=actor_id,
+        created_at=created_at,
+    )
+    session.add(history_row)
+    session.flush()
+    return history_row
+
+
+def insert_edit_change(
+    session: Session,
+    *,
+    complaint_id: int,
+    field_name: str,
+    previous_value: str,
+    new_value: str,
+    actor_id: int,
+    created_at: datetime,
+) -> ComplaintEditHistory:
+    """Append one `complaint_edit_history` row (FR-014, T-019). Only called
+    for a field the caller has already confirmed actually changed
+    (`services.complaints.edit_details`) — `new_value IS DISTINCT FROM
+    previous_value` is also a DB `CHECK` (REL-F5), belt-and-braces."""
+    history_row = ComplaintEditHistory(
+        complaint_id=complaint_id,
+        field_name=field_name,
+        previous_value=previous_value,
+        new_value=new_value,
         actor_id=actor_id,
         created_at=created_at,
     )

@@ -26,11 +26,13 @@ from app.api.schemas.complaints import (
     ComplaintDetailDTO,
     ComplaintDTO,
     CreateComplaintRequest,
+    EditDetailsRequest,
     UpdateStatusRequest,
 )
 from app.db.models.clerk_account import ClerkAccount
 from app.db.models.complaint import Complaint
 from app.services import complaints as complaints_service
+from app.services.complaints import edit_details as edit_details_service
 from app.services.complaints import transitions as transitions_service
 
 router = APIRouter(prefix="/api")
@@ -77,6 +79,36 @@ def create_complaint(
     # before `get_session()`'s own post-yield commit has even run. Committed
     # last (security review F1) so nothing after this line can turn an
     # already-durable write into an error response.
+    session.commit()
+
+    return body_out
+
+
+@router.post("/complaints/{complaint_id}/details", response_model=ComplaintDetailDTO)
+def edit_complaint_details(
+    complaint_id: int,
+    body: EditDetailsRequest,
+    session: Session = Depends(get_session),  # noqa: B008 - standard FastAPI DI idiom
+    user: ClerkAccount = Depends(current_user),  # noqa: B008 - 401 if unreachable via middleware
+) -> ComplaintDetailDTO:
+    result = edit_details_service.edit_details(
+        session,
+        complaint_id=complaint_id,
+        citizen_name=body.citizen_name,
+        citizen_phone=body.citizen_phone,
+        description=body.description,
+        actor_id=user.id,
+    )
+    body_out = _detail_dto(
+        result.complaint,
+        created_by=result.created_by_username,
+        legal_next_statuses=result.legal_next_statuses,
+        edit_window_expires_at=result.edit_window_expires_at,
+    )
+
+    # B-001: same reasoning as `create_complaint`/`update_complaint_status`
+    # above. Committed last (security review F1) so nothing after this line
+    # can turn an already-durable write into an error response.
     session.commit()
 
     return body_out
@@ -136,7 +168,7 @@ def update_complaint_status(
     complaint = result.complaint
     body_out = _detail_dto(
         complaint,
-        created_by=result.updated_by_username,
+        created_by=result.created_by_username,
         legal_next_statuses=result.legal_next_statuses,
         edit_window_expires_at=complaint.created_at
         + timedelta(days=complaints_service.EDIT_WINDOW_DAYS),

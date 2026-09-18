@@ -135,6 +135,9 @@ I want to build a small tool where a panchayat clerk logs citizen complaints and
 2026-09-18 | build (B-001 fix) | rev 1 | code-reviewer | APPROVED | 0/0/0/0
 2026-09-18 | build (B-001 fix) | rev 1 | security-reviewer | APPROVED | 0/0/3/0
 2026-09-18 | build (B-001 fix) | rev 2 (F1 applied: commit moved to just before return in all 4 write routes) | orchestrator (self-applied + re-verified: unit 170 passed, integration 10/10 clean runs, ruff/mypy clean) | APPROVED | 0/0/0/0
+2026-09-18 | build (T-019) | rev 1 | code-reviewer | APPROVED | 0/0/1/0
+2026-09-18 | build (T-019) | rev 1 | security-reviewer | APPROVED | 0/0/2/3
+2026-09-18 | build (T-019) | rev 2 (F1 fix: created_by attribution corrected) | security-reviewer | APPROVED | 0/0/0/1
 
 ## Known risks (summary — details in risks.md)
 

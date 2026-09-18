@@ -67,7 +67,7 @@ def is_legal_transition(previous_status: str, new_status: str) -> bool:
 @dataclass(frozen=True)
 class UpdateStatusResult:
     complaint: Complaint
-    updated_by_username: str
+    created_by_username: str
     legal_next_statuses: list[str]
 
 
@@ -120,12 +120,16 @@ def update_status(
     # `app.db.session`'s docstring, "B-001 root cause note").
     session.flush()
 
-    actor = user_repo.get_by_id(session, actor_id)
-    if actor is None:  # pragma: no cover - defensive; FK guarantees a row exists
+    # security review F1 (T-019): `created_by` on the response DTO means
+    # "which clerk logged the complaint" (data-dictionary.md), not "which
+    # clerk just made this change" — look up the complaint's original
+    # creator, never the acting clerk, so this response agrees with GET.
+    creator = user_repo.get_by_id(session, complaint.created_by)
+    if creator is None:  # pragma: no cover - defensive; FK guarantees a row exists
         raise DependencyUnavailable(strings.get("errors.complaint_creator_unavailable"))
 
     return UpdateStatusResult(
         complaint=complaint,
-        updated_by_username=actor.username,
+        created_by_username=creator.username,
         legal_next_statuses=legal_next_statuses(complaint.status),
     )

@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 _C0_CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
 # F7 (security review, round 2): `description` is a multi-line textarea
@@ -138,3 +138,38 @@ class UpdateStatusRequest(BaseModel):
     @classmethod
     def _trim_note(cls, value: object) -> object:
         return _trim_multiline_value(value)
+
+
+class EditDetailsRequest(BaseModel):
+    """`POST /api/complaints/{id}/details` request (api-contract.md #12,
+    FR-012/014, BR-014, AC-008, T-019). Every field is optional but at least
+    one must be present — same per-field rules as `CreateComplaintRequest`
+    (BR-007/012/014); `extra="forbid"` keeps this structurally free of any
+    government-ID-shaped field too (BR-009, TC-API-090), same as the create
+    request."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    citizen_name: str | None = Field(default=None, min_length=1, max_length=100)
+    citizen_phone: str | None = Field(default=None, min_length=1, max_length=16)
+    description: str | None = Field(default=None, min_length=1, max_length=2000)
+
+    @field_validator("citizen_name", "citizen_phone", mode="before")
+    @classmethod
+    def _trim_single_line(cls, value: object) -> object:
+        if isinstance(value, str):
+            if _C0_CONTROL_RE.search(value):
+                raise ValueError("must not contain control characters")
+            return value.strip()
+        return value
+
+    @field_validator("description", mode="before")
+    @classmethod
+    def _trim_multiline(cls, value: object) -> object:
+        return _trim_multiline_value(value)
+
+    @model_validator(mode="after")
+    def _at_least_one_field(self) -> EditDetailsRequest:
+        if self.citizen_name is None and self.citizen_phone is None and self.description is None:
+            raise ValueError("At least one of citizen_name, citizen_phone, description is required")
+        return self

@@ -60,6 +60,11 @@ _STRINGS: dict[str, str] = {
     # (error-catalog.md's "Public-safe message key" column).
     "errors.complaint_not_found": "We couldn't find that complaint.",
     "errors.illegal_transition": "That status change isn't allowed from the current status.",
+    # T-019 — services.complaints.edit_details / api.routers.complaints
+    # (error-catalog.md's "Public-safe message key" column).
+    "errors.edit_window_expired": (
+        "This complaint can no longer be edited; the 7-day edit window has passed."
+    ),
     # T-010 — services.lookup / api.routers.lookup (error-catalog.md's
     # "Public-safe message key" column).
     "lookup.invalid_format": "Enter a valid complaint number.",
